@@ -30,7 +30,7 @@ public final class Order {
         if (subtotal.equals(Money.zero())) {
             return Money.zero();
         }
-
+        
         java.math.BigDecimal taxRate = java.math.BigDecimal.valueOf(percent).divide(java.math.BigDecimal.valueOf(100));
         java.math.BigDecimal taxAmount = subtotal.getAmount().multiply(taxRate);
         return Money.of(taxAmount.doubleValue());
