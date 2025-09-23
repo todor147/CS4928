@@ -14,9 +14,9 @@ public class SimplePaymentTest {
         order.pay(fake);
         
         if (called[0]) {
-            System.out.println("✓ Payment strategy delegation test PASSED");
+            System.out.println("Payment strategy delegation test PASSED");
         } else {
-            System.out.println("✗ Payment strategy delegation test FAILED");
+            System.out.println("Payment strategy delegation test FAILED");
         }
         
         // Test actual payment strategies

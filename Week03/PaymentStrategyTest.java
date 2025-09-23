@@ -27,9 +27,9 @@ public class PaymentStrategyTest {
         allTestsPassed &= testOrderPayValidation();
         
         if (allTestsPassed) {
-            System.out.println("✓ All tests PASSED!");
+            System.out.println("All tests PASSED!");
         } else {
-            System.out.println("✗ Some tests FAILED!");
+            System.out.println("Some tests FAILED!");
         }
     }
     
@@ -43,14 +43,14 @@ public class PaymentStrategyTest {
             order.pay(fake);
             
             if (called[0]) {
-                System.out.println("✓ Payment strategy delegation test PASSED");
+                System.out.println("Payment strategy delegation test PASSED");
                 return true;
             } else {
-                System.out.println("✗ Payment strategy delegation test FAILED");
+                System.out.println("Payment strategy delegation test FAILED");
                 return false;
             }
         } catch (Exception e) {
-            System.out.println("✗ Payment strategy delegation test FAILED with exception: " + e.getMessage());
+            System.out.println("Payment strategy delegation test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
@@ -61,10 +61,10 @@ public class PaymentStrategyTest {
             var order = new Order(1);
             order.addItem(new LineItem(p, 1));
             order.pay(new CashPayment());
-            System.out.println("✓ Cash payment test PASSED");
+            System.out.println("Cash payment test PASSED");
             return true;
         } catch (Exception e) {
-            System.out.println("✗ Cash payment test FAILED with exception: " + e.getMessage());
+            System.out.println("Cash payment test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
@@ -75,10 +75,10 @@ public class PaymentStrategyTest {
             var order = new Order(1);
             order.addItem(new LineItem(p, 1));
             order.pay(new CardPayment("1234567812341234"));
-            System.out.println("✓ Card payment test PASSED");
+            System.out.println("Card payment test PASSED");
             return true;
         } catch (Exception e) {
-            System.out.println("✗ Card payment test FAILED with exception: " + e.getMessage());
+            System.out.println("Card payment test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
@@ -89,10 +89,10 @@ public class PaymentStrategyTest {
             var order = new Order(1);
             order.addItem(new LineItem(p, 1));
             order.pay(new WalletPayment("test-wallet-01"));
-            System.out.println("✓ Wallet payment test PASSED");
+            System.out.println("Wallet payment test PASSED");
             return true;
         } catch (Exception e) {
-            System.out.println("✗ Wallet payment test FAILED with exception: " + e.getMessage());
+            System.out.println("Wallet payment test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
@@ -102,7 +102,7 @@ public class PaymentStrategyTest {
             // Test null card number
             try {
                 new CardPayment(null);
-                System.out.println("✗ Card payment validation test FAILED - should throw exception for null");
+                System.out.println("Card payment validation test FAILED - should throw exception for null");
                 return false;
             } catch (IllegalArgumentException e) {
                 // Expected
@@ -111,7 +111,7 @@ public class PaymentStrategyTest {
             // Test short card number
             try {
                 new CardPayment("123");
-                System.out.println("✗ Card payment validation test FAILED - should throw exception for short number");
+                System.out.println("Card payment validation test FAILED - should throw exception for short number");
                 return false;
             } catch (IllegalArgumentException e) {
                 // Expected
@@ -120,16 +120,16 @@ public class PaymentStrategyTest {
             // Test empty card number
             try {
                 new CardPayment("");
-                System.out.println("✗ Card payment validation test FAILED - should throw exception for empty");
+                System.out.println("Card payment validation test FAILED - should throw exception for empty");
                 return false;
             } catch (IllegalArgumentException e) {
                 // Expected
             }
             
-            System.out.println("✓ Card payment validation test PASSED");
+            System.out.println("Card payment validation test PASSED");
             return true;
         } catch (Exception e) {
-            System.out.println("✗ Card payment validation test FAILED with exception: " + e.getMessage());
+            System.out.println("Card payment validation test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
@@ -139,7 +139,7 @@ public class PaymentStrategyTest {
             // Test null wallet ID
             try {
                 new WalletPayment(null);
-                System.out.println("✗ Wallet payment validation test FAILED - should throw exception for null");
+                System.out.println("Wallet payment validation test FAILED - should throw exception for null");
                 return false;
             } catch (IllegalArgumentException e) {
                 // Expected
@@ -148,16 +148,16 @@ public class PaymentStrategyTest {
             // Test empty wallet ID
             try {
                 new WalletPayment("");
-                System.out.println("✗ Wallet payment validation test FAILED - should throw exception for empty");
+                System.out.println("Wallet payment validation test FAILED - should throw exception for empty");
                 return false;
             } catch (IllegalArgumentException e) {
                 // Expected
             }
             
-            System.out.println("✓ Wallet payment validation test PASSED");
+            System.out.println("Wallet payment validation test PASSED");
             return true;
         } catch (Exception e) {
-            System.out.println("✗ Wallet payment validation test FAILED with exception: " + e.getMessage());
+            System.out.println("Wallet payment validation test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
@@ -171,16 +171,16 @@ public class PaymentStrategyTest {
             // Test null strategy
             try {
                 order.pay(null);
-                System.out.println("✗ Order pay validation test FAILED - should throw exception for null strategy");
+                System.out.println("Order pay validation test FAILED - should throw exception for null strategy");
                 return false;
             } catch (IllegalArgumentException e) {
                 // Expected
             }
             
-            System.out.println("✓ Order pay validation test PASSED");
+            System.out.println("Order pay validation test PASSED");
             return true;
         } catch (Exception e) {
-            System.out.println("✗ Order pay validation test FAILED with exception: " + e.getMessage());
+            System.out.println("Order pay validation test FAILED with exception: " + e.getMessage());
             return false;
         }
     }
