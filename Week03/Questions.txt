@@ -1,0 +1,14 @@
+Michael Beletsky (22351795)
+Todor Aleksandrov (22336303)
+
+CS4928 Questions for Week 3:
+
+1. Point to one if/else you avoided in Order by introducing PaymentStrategy.
+	Without PaymentStrategy, the Order.pay() method would need if/else statements like:
+   if (paymentType.equals("cash")) { /* cash logic */ }
+   else if (paymentType.equals("card")) { /* card logic */ }
+   else if (paymentType.equals("wallet")) { /* wallet logic */ }
+   The Strategy pattern eliminates this by delegating to the appropriate strategy object.
+
+2. Show (1-2 sentences) how the same Order can be paid by different strategies in the demo without changing Order code.
+	In Week3Demo the same Order object (order1) could be paid with different strategies by simply calling order1.pay(new CashPayment()), order1.pay(new CardPayment("1234")), or order1.pay(new WalletPayment("wallet1")). The Order class delegates to the strategy's pay() method without knowing the specific payment implementation allowing different payment behaviors without modifying Order code.
