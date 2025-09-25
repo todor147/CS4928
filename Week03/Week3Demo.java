@@ -17,5 +17,12 @@ public final class Week3Demo {
         order2.addItem(new LineItem(catalog.findById("P-CCK").orElseThrow(), 1));
         System.out.println("Order #" + order2.id() + " Total: " + order2.totalWithTax(10));
         order2.pay(new CardPayment("1234567812341234"));
+
+        // Wallet payment
+        Order order3 = new Order(1004L);
+        order3.addItem(new LineItem(catalog.findById("P-ESP").orElseThrow(), 1));
+        order3.addItem(new LineItem(catalog.findById("P-CCK").orElseThrow(), 2));
+        System.out.println("Order #" + order3.id() + " Total: " + order3.totalWithTax(10));
+        order3.pay(new WalletPayment("alice-wallet-01"));
     }
 }
