@@ -1,0 +1,109 @@
+Week 4 - Observer Pattern Class Diagram
+==========================================
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                Observer Pattern                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  OrderObserver  │    │ OrderPublisher  │    │     Order       │
+│   (interface)   │    │   (interface)   │    │   (implements   │
+│                 │    │                 │    │  OrderPublisher)│
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ + updated(      │    │ + register(     │    │ - id: long      │
+│   Order,        │    │   OrderObserver)│    │ - items: List   │
+│   String)       │    │ + unregister(   │    │ - observers:    │
+│                 │    │   OrderObserver)│    │   List          │
+└─────────────────┘    │ + notifyObservers│    ├─────────────────┤
+                       │   (Order, String)│    │ + addItem()     │
+                       └─────────────────┘    │ + pay()         │
+                                              │ + markReady()   │
+                                              │ + register()    │
+                                              │ + unregister()  │
+                                              │ + notifyObservers│
+                                              └─────────────────┘
+                                                       │
+                                                       │ 1
+                                                       │
+                                                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ KitchenDisplay  │    │  DeliveryDesk   │    │CustomerNotifier │
+│(implements      │    │(implements      │    │(implements      │
+│ OrderObserver)  │    │ OrderObserver)  │    │ OrderObserver)  │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ + updated()     │    │ + updated()     │    │ + updated()     │
+│   - Reacts to   │    │   - Reacts to   │    │   - Reacts to   │
+│     "itemAdded" │    │     "ready"     │    │     all events  │
+│     "paid"      │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            Strategy Pattern (Week 3)                           │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│PaymentStrategy  │    │   CashPayment   │    │  CardPayment    │
+│  (interface)    │    │(implements      │    │(implements      │
+│                 │    │ PaymentStrategy)│    │ PaymentStrategy)│
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ + pay(Order)    │    │ + pay(Order)    │    │ + pay(Order)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                       │
+                                                       │
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │ WalletPayment   │
+                                              │(implements      │
+                                              │ PaymentStrategy)│
+                                              ├─────────────────┤
+                                              │ + pay(Order)    │
+                                              └─────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Domain Model (Week 2)                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│     Catalog     │    │    Product      │    │   LineItem      │
+│   (interface)   │    │   (interface)   │    │                 │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ + add(Product)  │    │ + id(): String  │    │ - product:      │
+│ + findById(     │    │ + name(): String│    │   Product       │
+│   String)       │    │ + basePrice():  │    │ - quantity: int │
+└─────────────────┘    │   Money         │    ├─────────────────┤
+         │              └─────────────────┘    │ + product()     │
+         │                       │              │ + quantity()   │
+         │                       │              │ + lineTotal()  │
+         │                       │              └─────────────────┘
+         │                       │                       │
+         │                       │                       │
+         ▼                       ▼                       │
+┌─────────────────┐    ┌─────────────────┐              │
+│InMemoryCatalog  │    │ SimpleProduct   │              │
+│(implements      │    │(implements      │              │
+│ Catalog)        │    │ Product)        │              │
+├─────────────────┤    ├─────────────────┤              │
+│ - byId: Map     │    │ - id: String    │              │
+│ + add()         │    │ - name: String  │              │
+│ + findById()    │    │ - basePrice:    │              │
+└─────────────────┘    │   Money         │              │
+                       └─────────────────┘              │
+                                                       │
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │     Money       │
+                                              │                 │
+                                              ├─────────────────┤
+                                              │ - amount:       │
+                                              │   BigDecimal    │
+                                              │ + of(double)    │
+                                              │ + add(Money)    │
+                                              │ + multiply(int) │
+                                              └─────────────────┘
+
+Key Relationships:
+- Order implements OrderPublisher and uses PaymentStrategy
+- KitchenDisplay, DeliveryDesk, CustomerNotifier implement OrderObserver
+- Order contains LineItems which contain Products
+- Catalog manages Products
+- Money represents currency values
