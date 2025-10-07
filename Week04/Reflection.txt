@@ -1,0 +1,11 @@
+Week 4 Lab - Observer Pattern Reflection
+=========================================
+
+How does the Observer pattern improve decoupling in the Café POS system?
+The Observer pattern eliminates direct dependencies between the Order class and specific notification systems (Kitchen, Delivery, Customer). Instead of Order knowing about each notification type, it simply publishes events and lets observers decide how to respond. This means Order focuses on core business logic while notification concerns are handled separately.
+
+Why is it beneficial that new observers can be added without modifying the Order class?
+This follows the Open/Closed Principle - the system is open for extension (new observers) but closed for modification (Order class). For example, we could add a LoyaltyProgramObserver or AuditLoggerObserver without touching any existing code, making the system more maintainable and reducing the risk of introducing bugs.
+
+Can you think of a real-world system (outside cafés) where Observer is used?
+The Observer pattern is widely used in GUI frameworks (like Java Swing's ActionListener), social media platforms (notifications when someone likes your post), stock market systems (alerts when prices change), and event-driven architectures (microservices communicating through events). It's also fundamental to the Model-View-Controller (MVC) pattern where views observe model changes.
