@@ -1,0 +1,320 @@
+@startuml Week04_CafePOS_Complete
+
+title Week 04 - Café POS System\nObserver Pattern + Strategy Pattern Implementation
+
+' Style definitions
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam backgroundColor #FEFEFE
+
+' ============== OBSERVER PATTERN ==============
+package "Observer Pattern" #E3F2FD {
+    interface OrderObserver <<interface>> {
+        + updated(order: Order, eventType: String): void
+    }
+
+    interface OrderPublisher <<interface>> {
+        + register(o: OrderObserver): void
+        + unregister(o: OrderObserver): void
+        + notifyObservers(order: Order, eventType: String): void
+    }
+
+    class KitchenDisplay {
+        + updated(order: Order, eventType: String): void
+        --
+        Responds to:
+        - "itemAdded"
+        - "paid"
+    }
+
+    class DeliveryDesk {
+        + updated(order: Order, eventType: String): void
+        --
+        Responds to:
+        - "ready"
+    }
+
+    class CustomerNotifier {
+        + updated(order: Order, eventType: String): void
+        --
+        Responds to:
+        - all events
+    }
+}
+
+' ============== STRATEGY PATTERN ==============
+package "Payment Strategy Pattern" #FFF3E0 {
+    interface PaymentStrategy <<interface>> {
+        + pay(order: Order): void
+    }
+
+    class CashPayment {
+        + pay(order: Order): void
+    }
+
+    class CardPayment {
+        - cardNumber: String
+        --
+        + CardPayment(cardNumber: String)
+        + pay(order: Order): void
+    }
+
+    class WalletPayment {
+        - walletId: String
+        --
+        + WalletPayment(walletId: String)
+        + pay(order: Order): void
+    }
+}
+
+' ============== CORE DOMAIN ==============
+package "Core Domain" #E8F5E9 {
+    class Order {
+        - id: long
+        - items: List<LineItem>
+        - observers: List<OrderObserver>
+        --
+        + Order(id: long)
+        + addItem(li: LineItem): void
+        + pay(strategy: PaymentStrategy): void
+        + markReady(): void
+        + register(o: OrderObserver): void
+        + unregister(o: OrderObserver): void
+        + notifyObservers(order: Order, eventType: String): void
+        + subtotal(): Money
+        + taxAtPercent(percent: int): Money
+        + totalWithTax(percent: int): Money
+        + id(): long
+        + getItems(): List<LineItem>
+        + getItemCount(): int
+        + equals(obj: Object): boolean
+        + hashCode(): int
+        + toString(): String
+    }
+
+    class LineItem {
+        - product: Product
+        - quantity: int
+        --
+        + LineItem(product: Product, quantity: int)
+        + product(): Product
+        + quantity(): int
+        + lineTotal(): Money
+        + equals(obj: Object): boolean
+        + hashCode(): int
+        + toString(): String
+    }
+
+    class Money {
+        - amount: BigDecimal
+        --
+        + {static} of(value: double): Money
+        + {static} zero(): Money
+        - Money(a: BigDecimal)
+        + add(other: Money): Money
+        + multiply(qty: int): Money
+        + getAmount(): BigDecimal
+        + equals(obj: Object): boolean
+        + hashCode(): int
+        + toString(): String
+        + compareTo(other: Money): int
+    }
+
+    class OrderIds {
+        - {static} nextId: long
+        --
+        + {static} next(): long
+    }
+}
+
+' ============== PRODUCT CATALOG ==============
+package "Product Catalog" #F3E5F5 {
+    interface Product <<interface>> {
+        + id(): String
+        + name(): String
+        + basePrice(): Money
+    }
+
+    class SimpleProduct {
+        - id: String
+        - name: String
+        - basePrice: Money
+        --
+        + SimpleProduct(id: String, name: String, basePrice: Money)
+        + id(): String
+        + name(): String
+        + basePrice(): Money
+        + equals(obj: Object): boolean
+        + hashCode(): int
+        + toString(): String
+    }
+
+    interface Catalog <<interface>> {
+        + add(p: Product): void
+        + findById(id: String): Optional<Product>
+    }
+
+    class InMemoryCatalog {
+        - byId: Map<String, Product>
+        --
+        + add(p: Product): void
+        + findById(id: String): Optional<Product>
+    }
+}
+
+' ============== DEMO & TESTS ==============
+package "Demo & Tests" #FCE4EC {
+    class Week4Demo {
+        + {static} main(args: String[]): void
+    }
+
+    class ObserverPatternTest {
+        + observers_notified_on_item_add(): void
+        + observers_notified_on_payment(): void
+        + observers_notified_on_ready(): void
+        + multiple_observers_receive_event(): void
+        + unregistered_observer_does_not_receive_event(): void
+        + duplicate_observer_registration(): void
+        + observer_event_order(): void
+        + null_observer_registration_throws_exception(): void
+        + unregister_non_existent_observer(): void
+        --
+        - FakeObserver (inner class)
+    }
+
+    class SimpleObserverTest {
+        + observers_notified_on_item_add(): void
+        + multiple_observers_receive_event(): void
+    }
+}
+
+' ============== OBSERVER PATTERN RELATIONSHIPS ==============
+OrderPublisher <|.. Order : implements
+OrderObserver <|.. KitchenDisplay : implements
+OrderObserver <|.. DeliveryDesk : implements
+OrderObserver <|.. CustomerNotifier : implements
+Order "1" o-- "0..*" OrderObserver : notifies >
+OrderPublisher ..> OrderObserver : manages
+
+' ============== STRATEGY PATTERN RELATIONSHIPS ==============
+PaymentStrategy <|.. CashPayment : implements
+PaymentStrategy <|.. CardPayment : implements
+PaymentStrategy <|.. WalletPayment : implements
+Order --> PaymentStrategy : uses >
+
+' ============== CORE DOMAIN RELATIONSHIPS ==============
+Order "1" *-- "0..*" LineItem : contains
+LineItem "*" --> "1" Product : references >
+LineItem ..> Money : uses
+Order ..> Money : calculates
+Order ..> OrderIds : uses
+
+' ============== PRODUCT CATALOG RELATIONSHIPS ==============
+Product <|.. SimpleProduct : implements
+Catalog <|.. InMemoryCatalog : implements
+Catalog --> Product : manages >
+SimpleProduct --> Money : has
+InMemoryCatalog ..> Product : stores
+
+' ============== DEMO RELATIONSHIPS ==============
+Week4Demo ..> Order : creates
+Week4Demo ..> Catalog : uses
+Week4Demo ..> InMemoryCatalog : instantiates
+Week4Demo ..> SimpleProduct : creates
+Week4Demo ..> KitchenDisplay : registers
+Week4Demo ..> DeliveryDesk : registers
+Week4Demo ..> CustomerNotifier : registers
+Week4Demo ..> CashPayment : uses
+Week4Demo ..> OrderIds : uses
+Week4Demo ..> LineItem : creates
+
+' ============== TEST RELATIONSHIPS ==============
+ObserverPatternTest ..> Order : tests
+ObserverPatternTest ..> OrderObserver : uses
+SimpleObserverTest ..> Order : tests
+
+' ============== NOTES ==============
+note right of Order
+  **Central Aggregate**
+  • Acts as Publisher (Observer pattern)
+  • Acts as Context (Strategy pattern)
+  • Publishes events:
+    - "itemAdded" (when item added)
+    - "paid" (after payment)
+    - "ready" (when marked ready)
+  • Prevents duplicate observers
+  • Validates null observers
+end note
+
+note right of OrderObserver
+  **Observer Pattern**
+  Observers react independently
+  to order state changes:
+  
+  • KitchenDisplay: food prep
+  • DeliveryDesk: delivery prep
+  • CustomerNotifier: updates
+end note
+
+note right of PaymentStrategy
+  **Strategy Pattern**
+  Enables flexible payment
+  processing without modifying
+  Order class:
+  
+  • Cash: simple payment
+  • Card: validates & masks
+  • Wallet: validates wallet ID
+end note
+
+note bottom of Week4Demo
+  **Demonstration Flow:**
+  1. Create catalog with products
+  2. Create order with unique ID
+  3. Register 3 observers
+  4. Add espresso (triggers observers)
+  5. Pay with cash (triggers observers)
+  6. Mark ready (triggers observers)
+  
+  Output shows all observers
+  responding to events!
+end note
+
+note top of ObserverPatternTest
+  **Comprehensive Test Suite**
+  9 tests covering:
+  • Event notifications
+  • Multiple observers
+  • Registration/unregistration
+  • Event order
+  • Null safety
+  • Duplicate prevention
+end note
+
+' ============== LEGEND ==============
+legend right
+  **Design Patterns Used:**
+  
+  <b>Observer Pattern</b>
+  • Publisher: Order
+  • Observer: OrderObserver interface
+  • Concrete Observers: Kitchen, Delivery, Customer
+  • Events: itemAdded, paid, ready
+  
+  <b>Strategy Pattern</b>
+  • Context: Order
+  • Strategy: PaymentStrategy interface
+  • Concrete Strategies: Cash, Card, Wallet
+  
+  **Key Principles:**
+  • Open/Closed Principle
+  • Single Responsibility
+  • Dependency Inversion
+  • Loose Coupling
+endlegend
+
+@enduml
+
+

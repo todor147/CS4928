@@ -1,0 +1,80 @@
+===============================================================================
+   WEEK 04 - UML CLASS DIAGRAM GENERATOR
+===============================================================================
+
+STEP 1: Open this website in your browser
+--------------------------------------------------------------------------
+   
+   🌐  https://www.plantuml.com/plantuml/uml/
+
+
+STEP 2: Copy the code
+--------------------------------------------------------------------------
+
+   Open the file:  UML_DIAGRAM.puml
+   
+   Select ALL the code (Ctrl+A)
+   
+   Copy it (Ctrl+C)
+
+
+STEP 3: Paste and generate
+--------------------------------------------------------------------------
+
+   In the website:
+   
+   1. Delete any existing code in the left panel
+   
+   2. Paste your code (Ctrl+V)
+   
+   3. Diagram appears automatically on the right!
+   
+   4. Download as PNG, SVG, or PDF using links at top
+
+
+ALTERNATIVE WEBSITES:
+--------------------------------------------------------------------------
+
+   • https://www.planttext.com/
+   
+   • https://plantuml-editor.kkeisuke.com/
+   
+   • https://liveuml.com/
+
+
+WHAT YOU'LL SEE:
+--------------------------------------------------------------------------
+
+   ✅ Observer Pattern (Order → KitchenDisplay, DeliveryDesk, CustomerNotifier)
+   
+   ✅ Strategy Pattern (Order → CashPayment, CardPayment, WalletPayment)
+   
+   ✅ Core Domain (Order, LineItem, Money, OrderIds)
+   
+   ✅ Product Catalog (Product, SimpleProduct, Catalog, InMemoryCatalog)
+   
+   ✅ All relationships and multiplicities
+   
+   ✅ Color-coded packages
+   
+   ✅ Explanatory notes
+
+
+TROUBLESHOOTING:
+--------------------------------------------------------------------------
+
+   Q: Diagram doesn't appear?
+   A: Make sure you pasted the ENTIRE code including @startuml and @enduml
+
+   Q: Want better quality?
+   A: Download as SVG instead of PNG for scalable graphics
+
+   Q: Need to edit the diagram?
+   A: Edit the UML_DIAGRAM.puml file and paste again
+
+
+===============================================================================
+For detailed instructions, see: UML_INSTRUCTIONS.md
+===============================================================================
+
+

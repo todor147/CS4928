@@ -1,0 +1,252 @@
+Week 5 - Decorator + Factory Pattern Class Diagram
+===================================================
+
+INTERFACES
+----------
+
+<<interface>> Product
+    + id(): String
+    + name(): String
+    + basePrice(): Money
+
+<<interface>> Priced
+    + price(): Money5
+
+<<interface>> Catalog
+    + add(Product): void
+    + findById(String): Optional<Product>
+
+<<interface>> PaymentStrategy
+    + pay(Order): void
+
+<<interface>> OrderObserver
+    + updated(Order, String): void
+
+<<interface>> OrderPublisher
+    + register(OrderObserver): void
+    + unregister(OrderObserver): void
+    + notifyObservers(Order, String): void
+
+
+CORE CLASSES
+------------
+
+SimpleProduct (implements Product, Priced)
+    - id: String
+    - name: String
+    - basePrice: Money
+    + SimpleProduct(String, String, Money)
+    + id(): String
+    + name(): String
+    + basePrice(): Money
+    + price(): Money
+    + equals(Object): boolean
+    + hashCode(): int
+    + toString(): String
+
+Money (implements Comparable<Money>)
+    - amount: BigDecimal
+    + of(double): Money [static]
+    + zero(): Money [static]
+    + add(Money): Money
+    + multiply(int): Money
+    + getAmount(): BigDecimal
+    + compareTo(Money): int
+    + equals(Object): boolean
+    + hashCode(): int
+    + toString(): String
+
+LineItem
+    - product: Product
+    - quantity: int
+    + LineItem(Product, int)
+    + product(): Product
+    + quantity(): int
+    + lineTotal(): Money
+    + equals(Object): boolean
+    + hashCode(): int
+    + toString(): String
+
+Order (implements OrderPublisher)
+    - id: long
+    - items: List<LineItem>
+    - observers: List<OrderObserver>
+    + Order(long)
+    + addItem(LineItem): void
+    + subtotal(): Money
+    + taxAtPercent(int): Money
+    + totalWithTax(int): Money
+    + id(): long
+    + items(): List<LineItem>
+    + getItemCount(): int
+    + pay(PaymentStrategy): void
+    + markReady(): void
+    + register(OrderObserver): void
+    + unregister(OrderObserver): void
+    + notifyObservers(Order, String): void
+
+InMemoryCatalog (implements Catalog)
+    - byId: Map<String, Product>
+    + add(Product): void
+    + findById(String): Optional<Product>
+
+OrderIds
+    - nextId: long [static]
+    + next(): long [static]
+
+
+DECORATOR PATTERN CLASSES
+--------------------------
+
+ProductDecorator (abstract, implements Product, Priced)
+    # base: Product
+    # ProductDecorator(Product)
+    + id(): String
+    + basePrice(): Money
+    [abstract] name(): String
+    [abstract] price(): Money
+
+ExtraShot (extends ProductDecorator)
+    - SURCHARGE: Money = $0.80 [static final]
+    + ExtraShot(Product)
+    + name(): String
+    + price(): Money
+
+OatMilk (extends ProductDecorator)
+    - SURCHARGE: Money = $0.50 [static final]
+    + OatMilk(Product)
+    + name(): String
+    + price(): Money
+
+Syrup (extends ProductDecorator)
+    - SURCHARGE: Money = $0.40 [static final]
+    + Syrup(Product)
+    + name(): String
+    + price(): Money
+
+SizeLarge (extends ProductDecorator)
+    - SURCHARGE: Money = $0.70 [static final]
+    + SizeLarge(Product)
+    + name(): String
+    + price(): Money
+
+
+FACTORY PATTERN CLASS
+----------------------
+
+ProductFactory
+    + create(String): Product
+    [Creates products from recipe strings like "ESP+SHOT+OAT+L"]
+
+
+PAYMENT STRATEGY CLASSES
+-------------------------
+
+CardPayment (implements PaymentStrategy)
+    - cardNumber: String
+    + CardPayment(String)
+    + pay(Order): void
+
+CashPayment (implements PaymentStrategy)
+    + pay(Order): void
+
+WalletPayment (implements PaymentStrategy)
+    - walletId: String
+    + WalletPayment(String)
+    + pay(Order): void
+
+
+KEY RELATIONSHIPS
+-----------------
+
+1. DECORATOR PATTERN:
+   - ProductDecorator implements Product and Priced
+   - ProductDecorator HAS-A Product (composition)
+   - ExtraShot, OatMilk, Syrup, SizeLarge extend ProductDecorator
+   - Decorators can wrap other decorators (recursive composition)
+
+2. FACTORY PATTERN:
+   - ProductFactory creates Product instances
+   - ProductFactory creates SimpleProduct as base
+   - ProductFactory applies decorators in order
+
+3. STRATEGY PATTERN:
+   - Order HAS-A PaymentStrategy
+   - CardPayment, CashPayment, WalletPayment implement PaymentStrategy
+
+4. OBSERVER PATTERN:
+   - Order implements OrderPublisher
+   - Order HAS-MANY OrderObserver
+   - Order notifies observers on events (itemAdded, paid, ready)
+
+5. OTHER RELATIONSHIPS:
+   - LineItem HAS-A Product
+   - Order HAS-MANY LineItem
+   - InMemoryCatalog HAS-MANY Product
+   - SimpleProduct implements both Product and Priced
+   - All decorators implement both Product and Priced
+
+
+DESIGN PATTERNS SUMMARY
+------------------------
+
+1. DECORATOR (Week 5):
+   Purpose: Add responsibilities to objects dynamically
+   Implementation: ProductDecorator wraps Product
+   
+2. FACTORY (Week 5):
+   Purpose: Encapsulate object creation
+   Implementation: ProductFactory creates products from recipes
+   
+3. STRATEGY (Week 3):
+   Purpose: Define family of algorithms
+   Implementation: PaymentStrategy with multiple implementations
+   
+4. OBSERVER (Week 4):
+   Purpose: Define one-to-many dependency
+   Implementation: OrderPublisher/OrderObserver
+
+
+OPEN/CLOSED PRINCIPLE
+---------------------
+
+The design follows OCP in multiple ways:
+
+1. Adding new decorators:
+   - Create new class extending ProductDecorator
+   - No modification to existing classes needed
+
+2. Adding new products:
+   - Create new SimpleProduct instance in factory
+   - Minimal change localized to factory
+
+3. Adding new payment methods:
+   - Create new class implementing PaymentStrategy
+   - No modification to Order class needed
+
+4. Adding new observers:
+   - Create new class implementing OrderObserver
+   - No modification to Order class needed
+
+
+EXAMPLE USAGE
+-------------
+
+1. Manual Decoration:
+   Product p = new SimpleProduct("P-ESP", "Espresso", Money.of(2.50));
+   p = new ExtraShot(p);
+   p = new OatMilk(p);
+   p = new SizeLarge(p);
+   // Result: "Espresso + Extra Shot + Oat Milk (Large)" @ $4.50
+
+2. Factory Creation:
+   ProductFactory factory = new ProductFactory();
+   Product p = factory.create("ESP+SHOT+OAT+L");
+   // Result: Same as above
+
+3. Order with Decorated Products:
+   Order order = new Order(OrderIds.next());
+   order.addItem(new LineItem(p, 2));
+   Money total = order.totalWithTax(10);
+   // Total: $9.90 (4.50 * 2 * 1.10)
+

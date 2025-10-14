@@ -1,0 +1,257 @@
+================================================================================
+WEEK 5 LAB - DECORATOR + FACTORY PATTERN - COMPLETION SUMMARY
+================================================================================
+
+PROJECT: Café POS & Delivery System - Week 5
+PATTERNS: Decorator Pattern + Factory Pattern
+STATUS: ✅ COMPLETE AND TESTED
+
+================================================================================
+QUICK START
+================================================================================
+
+To run the demo:
+    cd Week05
+    compile.bat      (or: javac *.java payment/*.java)
+    run-demo.bat     (or: java Week5Demo)
+
+To run tests:
+    run-tests.bat    (or: java Week5Tests)
+
+================================================================================
+WHAT WAS IMPLEMENTED
+================================================================================
+
+1. DECORATOR PATTERN
+   ✅ ProductDecorator abstract base class
+   ✅ ExtraShot decorator (+$0.80)
+   ✅ OatMilk decorator (+$0.50)
+   ✅ Syrup decorator (+$0.40)
+   ✅ SizeLarge decorator (+$0.70)
+   ✅ Decorators can be stacked/chained
+   ✅ Pricing automatically accumulates
+
+2. FACTORY PATTERN
+   ✅ ProductFactory creates products from recipes
+   ✅ Recipe format: "BASE+ADDON1+ADDON2+..."
+   ✅ Supported bases: ESP, LAT, CAP
+   ✅ Supported add-ons: SHOT, OAT, SYP, L
+   ✅ Case-insensitive token parsing
+   ✅ Clear error messages for unknown tokens
+
+3. PRICED INTERFACE
+   ✅ New interface for uniform pricing
+   ✅ SimpleProduct implements Priced
+   ✅ All decorators implement Priced
+   ✅ LineItem uses Priced for calculations
+
+4. INTEGRATION
+   ✅ Decorators work with existing Order system
+   ✅ Payment strategies work with decorated products
+   ✅ Observer pattern still functional
+   ✅ All Week 2-4 functionality preserved
+
+================================================================================
+EXAMPLE USAGE
+================================================================================
+
+1. Factory Creation:
+   ProductFactory factory = new ProductFactory();
+   Product p = factory.create("ESP+SHOT+OAT+L");
+   // Creates: "Espresso + Extra Shot + Oat Milk (Large)" @ $4.50
+
+2. Manual Creation:
+   Product p = new SimpleProduct("P-ESP", "Espresso", Money.of(2.50));
+   p = new ExtraShot(p);
+   p = new OatMilk(p);
+   p = new SizeLarge(p);
+   // Same result as factory
+
+3. In an Order:
+   Order order = new Order(OrderIds.next());
+   order.addItem(new LineItem(p, 2));
+   Money total = order.totalWithTax(10);
+   // Correctly calculates: $9.90
+
+================================================================================
+DEMO OUTPUT
+================================================================================
+
+Order #1000
+ - Espresso + Extra Shot + Oat Milk x1 = $3.80
+ - Latte (Large) x2 = $7.80
+Subtotal: $11.60
+Tax (10%): $1.16
+Total: $12.76
+
+================================================================================
+TEST RESULTS
+================================================================================
+
+✓ test_decorator_single_addon passed
+✓ test_decorator_stacks passed
+✓ test_factory_parses_recipe passed
+✓ test_order_uses_decorated_price passed
+✓ test_factory_vs_manual passed
+✓ test_decoration_order_independence passed
+✓ test_all_base_products passed
+✓ test_all_decorators passed
+
+✓ All tests passed!
+
+================================================================================
+DESIGN HIGHLIGHTS
+================================================================================
+
+✅ OPEN/CLOSED PRINCIPLE PRESERVED
+   - Add new decorators without modifying existing code
+   - Add new base products with minimal factory changes
+   - System is open for extension, closed for modification
+
+✅ DECORATOR PATTERN BENEFITS
+   - Flexible composition of features
+   - Runtime configuration
+   - No class explosion
+   - Each decorator has single responsibility
+
+✅ FACTORY PATTERN BENEFITS
+   - Centralized creation logic
+   - Consistent product construction
+   - Easy recipe management
+   - Hides construction complexity
+
+✅ CLEAN CODE PRINCIPLES
+   - Single Responsibility Principle
+   - Dependency Inversion Principle
+   - Interface Segregation
+   - Composition over Inheritance
+
+================================================================================
+FILES DELIVERED
+================================================================================
+
+Core Implementation (15 files):
+  • Priced.java (new interface)
+  • ProductDecorator.java (abstract decorator)
+  • ExtraShot.java, OatMilk.java, Syrup.java, SizeLarge.java
+  • ProductFactory.java
+  • SimpleProduct.java (updated)
+  • LineItem.java (updated)
+  • Product.java, Money.java, Order.java, OrderIds.java
+  • Catalog.java, InMemoryCatalog.java
+  • OrderObserver.java, OrderPublisher.java
+
+Payment Strategy (4 files):
+  • payment/PaymentStrategy.java
+  • payment/CardPayment.java
+  • payment/CashPayment.java
+  • payment/WalletPayment.java
+
+Demo & Tests (2 files):
+  • Week5Demo.java
+  • Week5Tests.java
+
+Documentation (5 files):
+  • README.md (comprehensive guide)
+  • QUICKSTART.txt (quick reference)
+  • CLASS_DIAGRAM.txt (complete class diagram)
+  • DELIVERABLES.md (checklist)
+  • WEEK5_SUMMARY.txt (this file)
+
+Helper Scripts (3 files):
+  • compile.bat
+  • run-demo.bat
+  • run-tests.bat
+
+Total: 29 files
+
+================================================================================
+COORDINATOR DEMO CHECKLIST
+================================================================================
+
+For Week 6 assessment, show coordinator:
+
+1. ✅ Compile: compile.bat
+2. ✅ Run: run-demo.bat
+3. ✅ Verify decorated names on each line
+4. ✅ Verify correct pricing (base + surcharges)
+5. ✅ Verify correct totals with tax
+6. ✅ Run tests: run-tests.bat
+7. ✅ Show all tests passing
+8. ✅ Explain decorator pattern (optional)
+9. ✅ Explain factory pattern (optional)
+
+Expected time: < 2 minutes
+
+================================================================================
+ADDING NEW FEATURES (OCP DEMONSTRATION)
+================================================================================
+
+To add "Caramel Drizzle" (+$0.60):
+
+1. Create CaramelDrizzle.java:
+   public final class CaramelDrizzle extends ProductDecorator {
+       private static final Money SURCHARGE = Money.of(0.60);
+       public CaramelDrizzle(Product base) { super(base); }
+       @Override public String name() { return base.name() + " + Caramel"; }
+       @Override public Money price() { 
+           return (base instanceof Priced p ? p.price() : 
+                   base.basePrice()).add(SURCHARGE); 
+       }
+   }
+
+2. Update ProductFactory.java (add one line):
+   case "CAR" -> new CaramelDrizzle(p);
+
+3. That's it! No other classes need modification.
+
+================================================================================
+REFLECTION POINTS
+================================================================================
+
+1. Why Priced Interface?
+   - Separates base price from final price
+   - Uniform treatment of simple and decorated products
+   - Avoids complex conditional logic
+
+2. Factory vs Manual Construction?
+   - Factory: Better for application developers
+   - Factory: Simpler, more consistent, less error-prone
+   - Manual: Better for testing, more flexible
+   - Recommendation: Expose factory to users
+
+3. Open/Closed Principle?
+   - New decorators = new class only
+   - New products = minimal factory change
+   - No modification to existing classes
+   - System truly extensible
+
+================================================================================
+READY FOR ASSESSMENT
+================================================================================
+
+✅ All code compiles without errors
+✅ All tests pass (8/8)
+✅ Demo produces correct output
+✅ Documentation complete
+✅ Class diagram provided
+✅ Reflection included
+✅ OCP preserved and documented
+✅ Ready for Week 6 lab coordinator review
+
+================================================================================
+CONTACT & NOTES
+================================================================================
+
+Note: Week 5 lab session assesses Week 4 (Observer Pattern)
+      Week 5 work (Decorator + Factory) assessed in Week 6
+
+All deliverables are in the Week05/ folder
+All code follows Java 21 conventions
+All design patterns properly implemented
+All tests comprehensive and passing
+
+================================================================================
+END OF SUMMARY
+================================================================================
+

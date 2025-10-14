@@ -1,0 +1,105 @@
+═══════════════════════════════════════════════════════════════
+  WEEK 04 - CAFE POS CLI DEMO - QUICK START GUIDE
+═══════════════════════════════════════════════════════════════
+
+TO RUN THE DEMO:
+───────────────────────────────────────────────────────────────
+
+Windows Command Prompt:
+  cd Week04
+  run-demo.bat
+
+PowerShell:
+  cd Week04
+  .\run-demo.ps1
+
+Manual (any platform):
+  cd Week04
+  javac -cp ".;payment" CafePOSDemo.java
+  java -cp ".;payment" CafePOSDemo
+
+
+QUICKEST WAY TO SEE THE OBSERVER PATTERN IN ACTION:
+───────────────────────────────────────────────────────────────
+
+1. Run the demo
+2. Select option 8 (Demo: Observer Pattern)
+3. Watch the automated demonstration!
+
+This will show you:
+  ✓ How observers are registered to an order
+  ✓ How adding items notifies Kitchen and Customer
+  ✓ How payment notifies Kitchen and Customer  
+  ✓ How marking ready notifies Delivery and Customer
+
+
+MANUAL WALKTHROUGH:
+───────────────────────────────────────────────────────────────
+
+Step 1: Create an Order
+  → Select option 1
+  → Note the Order ID (e.g., 1000)
+
+Step 2: Add Items
+  → Select option 2
+  → Enter the Order ID
+  → Enter product code (e.g., COFFEE)
+  → Enter quantity (e.g., 2)
+  → WATCH: Kitchen Display and Customer Notifier are updated!
+
+Step 3: Pay for Order
+  → Select option 4
+  → Enter the Order ID
+  → Choose payment method (1=Cash, 2=Card)
+  → WATCH: Kitchen and Customer notifications!
+
+Step 4: Mark Ready
+  → Select option 5
+  → Enter the Order ID
+  → WATCH: Delivery Desk and Customer notifications!
+
+
+AVAILABLE PRODUCTS:
+───────────────────────────────────────────────────────────────
+COFFEE      - $3.50
+TEA         - $2.50
+LATTE       - $4.50
+CAPPUCCINO  - $4.00
+ESPRESSO    - $2.75
+CROISSANT   - $3.00
+MUFFIN      - $3.50
+SANDWICH    - $6.50
+COOKIE      - $2.00
+CAKE        - $5.00
+
+
+WHAT TO OBSERVE:
+───────────────────────────────────────────────────────────────
+
+✓ When you add items:
+  → [Kitchen] receives notification
+  → [Customer] receives notification
+
+✓ When you pay:
+  → [Cash] or [Card] processes payment
+  → [Kitchen] receives notification
+  → [Customer] receives notification
+
+✓ When you mark ready:
+  → [Delivery] receives notification
+  → [Customer] receives notification
+
+This demonstrates the OBSERVER PATTERN where:
+  • Order (Subject) maintains a list of observers
+  • Observers (Kitchen, Delivery, Customer) are notified automatically
+  • Order doesn't need to know implementation details of observers
+  • Loose coupling between components!
+
+
+FOR MORE DETAILS:
+───────────────────────────────────────────────────────────────
+See DEMO_README.md for complete documentation.
+
+═══════════════════════════════════════════════════════════════
+
+

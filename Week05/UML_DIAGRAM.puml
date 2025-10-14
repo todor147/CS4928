@@ -1,0 +1,256 @@
+@startuml Week05_CafePOS_DecoratorFactory
+
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #F9F9F9
+skinparam classBorderColor #333333
+skinparam stereotypeCBackgroundColor #ADD1B2
+
+title Week 5 - Café POS System\nDecorator + Factory Pattern
+
+' ===== INTERFACES =====
+
+interface Product {
+    +id(): String
+    +name(): String
+    +basePrice(): Money
+}
+
+interface Priced {
+    +price(): Money
+}
+
+interface Catalog {
+    +add(Product): void
+    +findById(String): Optional<Product>
+}
+
+interface PaymentStrategy {
+    +pay(Order): void
+}
+
+interface OrderObserver {
+    +updated(Order, String): void
+}
+
+interface OrderPublisher {
+    +register(OrderObserver): void
+    +unregister(OrderObserver): void
+    +notifyObservers(Order, String): void
+}
+
+' ===== CORE CLASSES =====
+
+class Money {
+    -amount: BigDecimal
+    --
+    +{static} of(double): Money
+    +{static} zero(): Money
+    +add(Money): Money
+    +multiply(int): Money
+    +getAmount(): BigDecimal
+    +compareTo(Money): int
+}
+
+class SimpleProduct {
+    -id: String
+    -name: String
+    -basePrice: Money
+    --
+    +SimpleProduct(String, String, Money)
+    +id(): String
+    +name(): String
+    +basePrice(): Money
+    +price(): Money
+}
+
+class LineItem {
+    -product: Product
+    -quantity: int
+    --
+    +LineItem(Product, int)
+    +product(): Product
+    +quantity(): int
+    +lineTotal(): Money
+}
+
+class Order {
+    -id: long
+    -items: List<LineItem>
+    -observers: List<OrderObserver>
+    --
+    +Order(long)
+    +addItem(LineItem): void
+    +subtotal(): Money
+    +taxAtPercent(int): Money
+    +totalWithTax(int): Money
+    +id(): long
+    +items(): List<LineItem>
+    +pay(PaymentStrategy): void
+    +markReady(): void
+    +register(OrderObserver): void
+    +unregister(OrderObserver): void
+    +notifyObservers(Order, String): void
+}
+
+class InMemoryCatalog {
+    -byId: Map<String, Product>
+    --
+    +add(Product): void
+    +findById(String): Optional<Product>
+}
+
+class OrderIds {
+    -{static} nextId: long
+    --
+    +{static} next(): long
+}
+
+' ===== DECORATOR PATTERN =====
+
+abstract class ProductDecorator {
+    #base: Product
+    --
+    #ProductDecorator(Product)
+    +id(): String
+    +basePrice(): Money
+    {abstract} +name(): String
+    {abstract} +price(): Money
+}
+
+class ExtraShot {
+    -{static} SURCHARGE: Money
+    --
+    +ExtraShot(Product)
+    +name(): String
+    +price(): Money
+}
+
+class OatMilk {
+    -{static} SURCHARGE: Money
+    --
+    +OatMilk(Product)
+    +name(): String
+    +price(): Money
+}
+
+class Syrup {
+    -{static} SURCHARGE: Money
+    --
+    +Syrup(Product)
+    +name(): String
+    +price(): Money
+}
+
+class SizeLarge {
+    -{static} SURCHARGE: Money
+    --
+    +SizeLarge(Product)
+    +name(): String
+    +price(): Money
+}
+
+' ===== FACTORY PATTERN =====
+
+class ProductFactory {
+    +create(String): Product
+}
+
+' ===== PAYMENT STRATEGY =====
+
+class CardPayment {
+    -cardNumber: String
+    --
+    +CardPayment(String)
+    +pay(Order): void
+}
+
+class CashPayment {
+    +pay(Order): void
+}
+
+class WalletPayment {
+    -walletId: String
+    --
+    +WalletPayment(String)
+    +pay(Order): void
+}
+
+' ===== RELATIONSHIPS =====
+
+' Product interface relationships
+Product <|.. SimpleProduct
+Product <|.. ProductDecorator
+
+' Priced interface relationships
+Priced <|.. SimpleProduct
+Priced <|.. ProductDecorator
+
+' Decorator pattern relationships
+ProductDecorator <|-- ExtraShot
+ProductDecorator <|-- OatMilk
+ProductDecorator <|-- Syrup
+ProductDecorator <|-- SizeLarge
+ProductDecorator o--> Product : wraps
+
+' Catalog relationships
+Catalog <|.. InMemoryCatalog
+InMemoryCatalog o--> Product : stores *
+
+' Order relationships
+OrderPublisher <|.. Order
+Order o--> LineItem : contains *
+Order o--> OrderObserver : notifies *
+Order ..> PaymentStrategy : uses
+
+' LineItem relationships
+LineItem o--> Product : has
+
+' Payment Strategy relationships
+PaymentStrategy <|.. CardPayment
+PaymentStrategy <|.. CashPayment
+PaymentStrategy <|.. WalletPayment
+
+' Factory relationships
+ProductFactory ..> SimpleProduct : creates
+ProductFactory ..> ExtraShot : creates
+ProductFactory ..> OatMilk : creates
+ProductFactory ..> Syrup : creates
+ProductFactory ..> SizeLarge : creates
+ProductFactory ..> Product : returns
+
+' Money relationships
+SimpleProduct o--> Money
+LineItem ..> Money
+Order ..> Money
+
+' Notes for patterns
+note right of ProductDecorator
+  <b>DECORATOR PATTERN</b>
+  Wraps Product to add
+  features dynamically.
+  Each decorator adds its
+  surcharge to the price.
+end note
+
+note right of ProductFactory
+  <b>FACTORY PATTERN</b>
+  Creates products from
+  recipe strings like:
+  "ESP+SHOT+OAT+L"
+end note
+
+note bottom of PaymentStrategy
+  <b>STRATEGY PATTERN</b>
+  Different payment methods
+  implement same interface
+end note
+
+note top of OrderPublisher
+  <b>OBSERVER PATTERN</b>
+  Order notifies observers
+  when events occur
+end note
+
+@enduml
+

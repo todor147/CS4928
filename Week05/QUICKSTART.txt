@@ -1,0 +1,71 @@
+Week 5 - Decorator + Factory Pattern Quick Start Guide
+======================================================
+
+COMPILATION
+-----------
+Option 1 (Windows):
+    compile.bat
+
+Option 2 (Manual):
+    javac *.java payment/*.java
+
+RUNNING THE DEMO
+----------------
+Option 1 (Windows):
+    run-demo.bat
+
+Option 2 (Manual):
+    java Week5Demo
+
+The demo now features an INTERACTIVE CLI with multiple options:
+    1. Create Custom Order (Interactive) - Build your order step-by-step
+    2. Create Order Using Recipe Codes - Use recipe strings like "ESP+SHOT+OAT"
+    3. Run Sample Demo - Quick demo with pre-configured order
+    4. View Recipe Code Reference - See all available codes
+    5. Exit
+
+Sample Demo Output (Option 3):
+    Order #1000
+     - Espresso + Extra Shot + Oat Milk x1 = $3.80
+     - Latte (Large) x2 = $7.80
+    Subtotal: $11.60
+    Tax (10%): $1.16
+    Total: $12.76
+
+RUNNING TESTS
+-------------
+Option 1 (Windows):
+    run-tests.bat
+
+Option 2 (Manual):
+    java Week5Tests
+
+Expected Output:
+    All tests should pass with checkmarks
+
+KEY FEATURES
+------------
+1. Decorator Pattern - Add optional features to products without modifying base classes
+2. Factory Pattern - Create products from recipe strings (e.g., "ESP+SHOT+OAT+L")
+3. Priced Interface - Uniform pricing for both simple and decorated products
+4. Open/Closed Principle - Add new decorators or products without modifying existing code
+
+RECIPE CODES
+------------
+Base Products:
+    ESP - Espresso ($2.50)
+    LAT - Latte ($3.20)
+    CAP - Cappuccino ($3.00)
+
+Add-ons:
+    SHOT - Extra Shot (+$0.80)
+    OAT  - Oat Milk (+$0.50)
+    SYP  - Syrup (+$0.40)
+    L    - Large Size (+$0.70)
+
+Examples:
+    "ESP+SHOT"         -> Espresso + Extra Shot ($3.30)
+    "LAT+L"            -> Latte (Large) ($3.90)
+    "ESP+SHOT+OAT+L"   -> Espresso + Extra Shot + Oat Milk (Large) ($4.50)
+    "CAP+SYP+OAT"      -> Cappuccino + Syrup + Oat Milk ($3.90)
+

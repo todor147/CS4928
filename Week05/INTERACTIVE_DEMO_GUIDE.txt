@@ -1,0 +1,247 @@
+================================================================================
+WEEK 5 - INTERACTIVE CLI DEMO GUIDE
+================================================================================
+
+The Week5Demo has been enhanced with a full interactive CLI that allows you to:
+  • Build custom orders step-by-step
+  • Use recipe codes for quick ordering
+  • Process payments with different strategies
+  • View comprehensive order summaries
+
+================================================================================
+RUNNING THE INTERACTIVE DEMO
+================================================================================
+
+To start:
+    cd Week05
+    java Week5Demo
+
+Or use:
+    run-demo.bat
+
+================================================================================
+MENU OPTIONS
+================================================================================
+
+┌─ MAIN MENU ─────────────────────────────────────────────┐
+│ 1. Create Custom Order (Interactive)                    │
+│ 2. Create Order Using Recipe Codes                      │
+│ 3. Run Sample Demo                                       │
+│ 4. View Recipe Code Reference                            │
+│ 5. Exit                                                  │
+└──────────────────────────────────────────────────────────┘
+
+================================================================================
+OPTION 1: CREATE CUSTOM ORDER (INTERACTIVE)
+================================================================================
+
+This option guides you through building an order step-by-step:
+
+STEP 1: Choose Your Base Drink
+  • Espresso ($2.50)
+  • Latte ($3.20)
+  • Cappuccino ($3.00)
+
+STEP 2: Add Optional Features
+  • Extra Shot? (+$0.80)
+  • Oat Milk? (+$0.50)
+  • Syrup? (+$0.40)
+  • Large Size? (+$0.70)
+
+STEP 3: Set Quantity
+  • Enter the number of this item
+
+STEP 4: Add More Items?
+  • Choose to add another item or proceed to checkout
+
+STEP 5: Payment (Optional)
+  • Cash
+  • Card (enter card number)
+  • Wallet (enter wallet ID)
+
+Example Flow:
+  1. Select option 1
+  2. Choose Espresso (option 1)
+  3. Add Extra Shot (y)
+  4. Add Oat Milk (y)
+  5. Skip Syrup (n)
+  6. Skip Large (n)
+  7. Quantity: 2
+  8. Don't add more items (n)
+  9. View order summary
+  10. Process payment (optional)
+
+Result: 2 × Espresso + Extra Shot + Oat Milk ($7.60 + tax)
+
+================================================================================
+OPTION 2: CREATE ORDER USING RECIPE CODES
+================================================================================
+
+For users familiar with the recipe code system:
+
+Format: BASE+ADDON1+ADDON2+...
+
+Base Codes:
+  ESP - Espresso
+  LAT - Latte
+  CAP - Cappuccino
+
+Add-on Codes:
+  SHOT - Extra Shot
+  OAT  - Oat Milk
+  SYP  - Syrup
+  L    - Large Size
+
+Example Session:
+  1. Select option 2
+  2. Enter recipe: ESP+SHOT+OAT
+  3. Enter quantity: 1
+  4. Add another? y
+  5. Enter recipe: LAT+L
+  6. Enter quantity: 2
+  7. Add another? n
+  8. View order summary
+
+Result: Mixed order with different drinks
+
+================================================================================
+OPTION 3: RUN SAMPLE DEMO
+================================================================================
+
+Runs a pre-configured demo order:
+  • 1 × Espresso + Extra Shot + Oat Milk ($3.80)
+  • 2 × Latte (Large) ($7.80)
+  
+Total: $12.76 (with 10% tax)
+
+This is useful for:
+  • Quick demonstrations
+  • Testing the system
+  • Showing the decorator pattern in action
+
+================================================================================
+OPTION 4: VIEW RECIPE CODE REFERENCE
+================================================================================
+
+Displays a complete reference guide:
+  • All base products with prices
+  • All add-ons with surcharges
+  • Example recipes
+  • Usage instructions
+
+Helpful when using Option 2 (recipe codes).
+
+================================================================================
+PAYMENT PROCESSING
+================================================================================
+
+After viewing an order summary, you can optionally process payment:
+
+Payment Methods:
+  1. Cash - Simple cash payment
+  2. Card - Requires card number (last 4 digits shown masked)
+  3. Wallet - Requires wallet ID
+
+Example:
+  Process payment? [y/N]: y
+  Select payment method (1-3): 2
+  Enter card number: 1234567890123456
+  [Card] Customer paid $12.76 EUR with card ****3456
+  ✓ Payment processed successfully!
+
+================================================================================
+DESIGN PATTERNS DEMONSTRATED
+================================================================================
+
+While using the interactive demo, you're experiencing:
+
+1. DECORATOR PATTERN
+   Each add-on (SHOT, OAT, SYP, L) is a decorator that wraps the base product
+   and adds its functionality and price dynamically.
+
+2. FACTORY PATTERN
+   The ProductFactory creates products from recipe codes, hiding the
+   complexity of constructing decorated products.
+
+3. STRATEGY PATTERN
+   Payment methods (Cash, Card, Wallet) implement different strategies
+   for processing payments.
+
+4. OBSERVER PATTERN
+   When items are added to orders or payments are processed, observers
+   are notified (though not visible in this CLI demo).
+
+================================================================================
+TIPS FOR BEST EXPERIENCE
+================================================================================
+
+• Try different combinations of add-ons to see prices change
+• Order multiple items to see subtotals accumulate
+• Use Option 4 to learn all recipe codes before using Option 2
+• Process payments to see the Strategy pattern in action
+• Invalid inputs are handled gracefully with defaults
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Q: Recipe code not working?
+A: Make sure you're using valid codes (ESP, LAT, CAP for base; SHOT, OAT,
+   SYP, L for add-ons). Check Option 4 for reference.
+
+Q: Numbers not being accepted?
+A: Enter just the number without any extra characters. Invalid entries
+   default to safe values (usually 1).
+
+Q: Want to start over?
+A: Just select option 5 to exit and restart the demo, or complete your
+   current order and start a new one from the main menu.
+
+Q: Can I skip payment?
+A: Yes! When asked "Process payment? [y/N]:", just press Enter or type 'n'.
+
+================================================================================
+EXAMPLE SESSION
+================================================================================
+
+Here's a complete example session:
+
+> java Week5Demo
+╔════════════════════════════════════════════════════════════╗
+║          CAFÉ POS - Week 5 Interactive Demo              ║
+║         Decorator + Factory Pattern Demonstration         ║
+╚════════════════════════════════════════════════════════════╝
+
+┌─ MAIN MENU ─────────────────────────────────────────────┐
+│ 1. Create Custom Order (Interactive)                    │
+│ 2. Create Order Using Recipe Codes                      │
+│ 3. Run Sample Demo                                       │
+│ 4. View Recipe Code Reference                            │
+│ 5. Exit                                                  │
+└──────────────────────────────────────────────────────────┘
+Select option: 1
+
+[Follow prompts to build your order...]
+
+Order #1000
+─────────────────────────────────────────────────────────────
+ - Espresso + Extra Shot + Oat Milk               x1  = $3.80
+─────────────────────────────────────────────────────────────
+Subtotal: $3.80
+Tax (10%): $0.38
+═════════════════════════════════════════════════════════════
+TOTAL: $4.18
+═════════════════════════════════════════════════════════════
+
+Process payment? [y/N]: y
+
+[Select payment method and complete transaction...]
+
+✓ Payment processed successfully!
+
+[Return to main menu for another order or exit]
+
+================================================================================
+ENJOY THE INTERACTIVE DEMO!
+================================================================================
+
