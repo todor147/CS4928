@@ -3,7 +3,6 @@ package com.cafepos.demo;
 import com.cafepos.smells.OrderManagerGod;
 import com.cafepos.factory.ProductFactory;
 import com.cafepos.pricing.*;
-import com.cafepos.payment.*;
 
 import java.util.Scanner;
 
