@@ -20,6 +20,7 @@ public final class ProductFactory {
             case "ESP" -> new SimpleProduct("P-ESP", "Espresso", Money.of(2.50));
             case "LAT" -> new SimpleProduct("P-LAT", "Latte", Money.of(3.20));
             case "CAP" -> new SimpleProduct("P-CAP", "Cappuccino", Money.of(3.00));
+            case "AME" -> new SimpleProduct("P-AME", "Americano", Money.of(2.80));
             default -> throw new IllegalArgumentException("Unknown base: " + parts[0]);
         };
         
