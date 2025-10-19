@@ -1,3 +1,7 @@
+import com.cafepos.catalog.Product;
+import com.cafepos.common.Money;
+import com.cafepos.decorator.Priced;
+
 public final class LineItem {
     private final Product product;
     private final int quantity;
