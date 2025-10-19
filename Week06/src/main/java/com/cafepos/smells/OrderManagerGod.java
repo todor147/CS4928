@@ -3,7 +3,7 @@ package com.cafepos.smells;
 import com.cafepos.common.Money;
 import com.cafepos.factory.ProductFactory;
 import com.cafepos.catalog.Product;
-import com.cafepos.CheckoutService;
+import com.cafepos.checkout.CheckoutService;
 import com.cafepos.DiscountPolicyFactory;
 import com.cafepos.PaymentStrategyFactory;
 import com.cafepos.pricing.PricingService;
@@ -26,10 +26,10 @@ public class OrderManagerGod {
         var paymentStrategy = PaymentStrategyFactory.createPaymentStrategy(paymentType);
         
         // Create CheckoutService with injected dependencies
-        var checkoutService = new CheckoutService(productFactory, pricingService, receiptPrinter, TAX_PERCENT);
+        var checkoutService = new CheckoutService(productFactory, pricingService, receiptPrinter, paymentStrategy, TAX_PERCENT);
         
         // Delegate to CheckoutService
-        String receipt = checkoutService.checkout(recipe, qty, paymentStrategy);
+        String receipt = checkoutService.checkout(recipe, qty);
         
         if (printReceipt) {
             System.out.println(receipt);

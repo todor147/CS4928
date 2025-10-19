@@ -1,23 +1,23 @@
 package com.cafepos;
 
-import com.cafepos.payment.ReceiptCardPayment;
-import com.cafepos.payment.ReceiptCashPayment;
-import com.cafepos.payment.ReceiptPaymentStrategy;
-import com.cafepos.payment.ReceiptWalletPayment;
+import com.cafepos.strategy.CardPaymentStrategy;
+import com.cafepos.strategy.CashPaymentStrategy;
+import com.cafepos.strategy.PaymentStrategy;
+import com.cafepos.strategy.WalletPaymentStrategy;
 
 public final class PaymentStrategyFactory {
-    public static ReceiptPaymentStrategy createPaymentStrategy(String paymentType) {
+    public static PaymentStrategy createPaymentStrategy(String paymentType) {
         if (paymentType == null) {
             return null;
         }
         
         switch (paymentType.toUpperCase()) {
             case "CASH":
-                return new ReceiptCashPayment();
+                return new CashPaymentStrategy();
             case "CARD":
-                return new ReceiptCardPayment("1234");
+                return new CardPaymentStrategy("1234");
             case "WALLET":
-                return new ReceiptWalletPayment("user-wallet-789");
+                return new WalletPaymentStrategy("user-wallet-789");
             default:
                 return null;
         }
