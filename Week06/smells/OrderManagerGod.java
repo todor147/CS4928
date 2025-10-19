@@ -1,194 +1,180 @@
 package smells;
 
-import java.math.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
-// SMELL: God Class - This class knows and does EVERYTHING
-// Responsibilities: product creation, pricing, discounts, tax, receipts, payment
+/**
+ * OrderManagerGod - A monolithic class that does everything.
+ * This class violates multiple design principles and contains various code smells.
+ */
 public class OrderManagerGod {
-    // SMELL: Global State - Static mutable state shared across all instances
-    private static String LAST_DISCOUNT_CODE = null;
+    // SMELL: Global State - static mutable state shared across all instances
+    private static String LAST_DISCOUNT_CODE = "NONE";
+    // SMELL: Global State - static configuration that should be injected
+    private static final double TAX_PERCENT = 7.0;
     
-    // SMELL: Primitive Obsession - Using raw int instead of a TaxRate value object
-    private static final int TAX_PERCENT = 10;
-    
-    // SMELL: Long Method - This method does everything in 100+ lines
-    // Responsibilities: parse recipe, build product, apply discount, calculate tax, format receipt, handle payment
+    // SMELL: God Class - this class knows too much and does too much
+    // SMELL: Long Method - this method is doing way too many things
     public static String process(String recipe, int quantity, String discountCode, String paymentMethod) {
-        // SMELL: Shotgun Surgery - If we need to change quantity clamping, we touch this method
+        // Clamp quantity
         if (quantity < 1) {
             quantity = 1;
         }
         
-        // SMELL: Duplicated Logic - Product creation logic duplicated from ProductFactory
-        // SMELL: Feature Envy - This code wants to be in a ProductFactory
-        String[] parts = recipe.split("\\+");
-        for (int i = 0; i < parts.length; i++) {
-            parts[i] = parts[i].trim().toUpperCase();
-        }
-        
-        // Base product creation
+        // Create product - inline factory logic
+        // SMELL: Duplicated Logic - product creation logic copied here
+        BigDecimal unitPrice;
         String productName;
-        double basePrice;
         
-        // SMELL: Primitive Obsession - Using raw doubles instead of Money objects
+        String[] raw = recipe.split("\\+");
+        String[] parts = java.util.Arrays.stream(raw)
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .toArray(String[]::new);
+        
+        // Base price calculation
         switch (parts[0]) {
             case "ESP":
                 productName = "Espresso";
-                basePrice = 2.50;
+                unitPrice = BigDecimal.valueOf(2.50);
                 break;
             case "LAT":
                 productName = "Latte";
-                basePrice = 3.20;
+                unitPrice = BigDecimal.valueOf(3.20);
                 break;
             case "CAP":
                 productName = "Cappuccino";
-                basePrice = 3.00;
+                unitPrice = BigDecimal.valueOf(3.00);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown base: " + parts[0]);
         }
         
-        // Apply decorators
-        // SMELL: Duplicated Logic - Same decorator logic as ProductFactory
-        double currentPrice = basePrice;
+        // Add decorations
         for (int i = 1; i < parts.length; i++) {
             switch (parts[i]) {
                 case "SHOT":
                     productName += " + Extra Shot";
-                    currentPrice += 0.80;
+                    unitPrice = unitPrice.add(BigDecimal.valueOf(0.80));
                     break;
                 case "OAT":
                     productName += " + Oat Milk";
-                    currentPrice += 0.50;
+                    unitPrice = unitPrice.add(BigDecimal.valueOf(0.60));
                     break;
                 case "SYP":
                     productName += " + Syrup";
-                    currentPrice += 0.40;
+                    unitPrice = unitPrice.add(BigDecimal.valueOf(0.50));
                     break;
                 case "L":
-                    productName += " (Large)";
-                    currentPrice += 0.70;
+                    productName += " + Large";
+                    unitPrice = unitPrice.add(BigDecimal.valueOf(1.00));
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown addon: " + parts[i]);
             }
         }
         
+        unitPrice = unitPrice.setScale(2, RoundingMode.HALF_UP);
+        
         // Calculate subtotal
-        // SMELL: Primitive Obsession - Using raw doubles everywhere
-        // SMELL: Duplicated Logic - Repeated BigDecimal math
-        BigDecimal unitPrice = BigDecimal.valueOf(currentPrice).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP);
+        // SMELL: Duplicated Logic - BigDecimal math repeated
+        BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity))
+                                      .setScale(2, RoundingMode.HALF_UP);
         
-        // Apply discount
-        // SMELL: Primitive Obsession - Using string codes instead of DiscountPolicy objects
-        // SMELL: Feature Envy - Discount logic wants to be in a separate DiscountPolicy class
-        // SMELL: Shotgun Surgery - To add new discount type, must edit this conditional
-        BigDecimal discount = BigDecimal.ZERO;
-        String discountLine = "";
+        // Calculate discount
+        // SMELL: Primitive Obsession - using strings instead of proper types for discount codes
+        // SMELL: Feature Envy - discount rules should be in their own class
+        // SMELL: Shotgun Surgery - changing discount rules requires editing this method
+        BigDecimal discountAmount = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        String discountDescription = "";
         
-        if (discountCode != null && !discountCode.trim().isEmpty()) {
-            // SMELL: Global State - Storing discount code in static field
-            LAST_DISCOUNT_CODE = discountCode;
-            
-            if (discountCode.equalsIgnoreCase("LOYALTY10")) {
-                // SMELL: Duplicated Logic - Percentage calculation repeated
-                // SMELL: Feature Envy - This calculation belongs in a discount policy
-                discount = subtotal.multiply(BigDecimal.valueOf(0.10)).setScale(2, RoundingMode.HALF_UP);
-                discountLine = "Discount (LOYALTY10):      -$" + discount.toString() + "\n";
-            } else if (discountCode.equalsIgnoreCase("SAVE5")) {
-                // SMELL: Duplicated Logic - Fixed discount logic
-                discount = BigDecimal.valueOf(5.00).setScale(2, RoundingMode.HALF_UP);
-                // SMELL: Duplicated Logic - Capping logic (can't exceed subtotal)
-                if (discount.compareTo(subtotal) > 0) {
-                    discount = subtotal;
+        if (discountCode != null && !discountCode.isBlank()) {
+            // SMELL: Primitive Obsession - magic strings and conditionals
+            if (discountCode.equals("LOYALTY10")) {
+                // SMELL: Duplicated Logic - percentage calculation repeated
+                discountAmount = subtotal.multiply(BigDecimal.valueOf(0.10))
+                                        .setScale(2, RoundingMode.HALF_UP);
+                discountDescription = "Loyalty 10%";
+            } else if (discountCode.equals("SUMMER20")) {
+                discountAmount = subtotal.multiply(BigDecimal.valueOf(0.20))
+                                        .setScale(2, RoundingMode.HALF_UP);
+                discountDescription = "Summer 20%";
+            } else if (discountCode.equals("COUPON5")) {
+                discountAmount = BigDecimal.valueOf(5.00)
+                                          .setScale(2, RoundingMode.HALF_UP);
+                // Cap discount at subtotal
+                if (discountAmount.compareTo(subtotal) > 0) {
+                    discountAmount = subtotal;
                 }
-                discountLine = "Discount (SAVE5):          -$" + discount.toString() + "\n";
-            } else if (discountCode.equalsIgnoreCase("WELCOME")) {
-                discount = BigDecimal.valueOf(2.00).setScale(2, RoundingMode.HALF_UP);
-                if (discount.compareTo(subtotal) > 0) {
-                    discount = subtotal;
-                }
-                discountLine = "Discount (WELCOME):        -$" + discount.toString() + "\n";
+                discountDescription = "Coupon $5.00";
+            } else {
+                // Invalid discount code
+                discountDescription = "None";
             }
+            // SMELL: Global State - mutating static state
+            LAST_DISCOUNT_CODE = discountCode;
+        } else {
+            discountDescription = "None";
+            LAST_DISCOUNT_CODE = "NONE";
         }
         
         // Calculate discounted total
-        // SMELL: Duplicated Logic - Repeated BigDecimal operations
-        BigDecimal discountedTotal = subtotal.subtract(discount).setScale(2, RoundingMode.HALF_UP);
+        // SMELL: Duplicated Logic - repeated subtraction pattern
+        BigDecimal afterDiscount = subtotal.subtract(discountAmount)
+                                           .setScale(2, RoundingMode.HALF_UP);
         
         // Calculate tax
-        // SMELL: Feature Envy - Tax calculation wants to be in a TaxPolicy class
-        // SMELL: Primitive Obsession - Using raw int for tax percent
-        // SMELL: Duplicated Logic - Tax calculation logic repeated
-        BigDecimal taxRate = BigDecimal.valueOf(TAX_PERCENT).divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
-        BigDecimal tax = discountedTotal.multiply(taxRate).setScale(2, RoundingMode.HALF_UP);
+        // SMELL: Primitive Obsession - using raw double for TAX_PERCENT
+        // SMELL: Feature Envy - tax calculation should be in its own class
+        // SMELL: Duplicated Logic - tax calculation logic embedded here
+        BigDecimal taxAmount = afterDiscount.multiply(BigDecimal.valueOf(TAX_PERCENT / 100.0))
+                                           .setScale(2, RoundingMode.HALF_UP);
         
         // Calculate final total
-        BigDecimal finalTotal = discountedTotal.add(tax).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal finalTotal = afterDiscount.add(taxAmount)
+                                             .setScale(2, RoundingMode.HALF_UP);
         
-        // Format receipt
-        // SMELL: Feature Envy - Receipt formatting wants to be in a ReceiptPrinter class
-        // SMELL: Long Method - Receipt building adds another 20+ lines
+        // Build receipt
+        // SMELL: Long Method continues - formatting mixed with business logic
         StringBuilder receipt = new StringBuilder();
-        receipt.append("═══════════════════════════\n");
-        receipt.append("       CAFÉ POS RECEIPT\n");
-        receipt.append("═══════════════════════════\n");
-        receipt.append(productName).append("\n");
-        receipt.append("Quantity:                  ").append(quantity).append("\n");
-        receipt.append("Unit Price:                $").append(unitPrice.toString()).append("\n");
-        receipt.append("---------------------------\n");
-        receipt.append("Subtotal:                  $").append(subtotal.toString()).append("\n");
-        
-        if (!discountLine.isEmpty()) {
-            receipt.append(discountLine);
-        }
-        
-        receipt.append("Tax (").append(TAX_PERCENT).append("%):                  $").append(tax.toString()).append("\n");
-        receipt.append("═══════════════════════════\n");
-        receipt.append("TOTAL:                     $").append(finalTotal.toString()).append("\n");
-        receipt.append("═══════════════════════════\n");
+        receipt.append("=== RECEIPT ===\n");
+        receipt.append("Item: ").append(productName).append("\n");
+        receipt.append("Quantity: ").append(quantity).append("\n");
+        receipt.append("Unit Price: $").append(unitPrice.toString()).append("\n");
+        receipt.append("Subtotal: $").append(subtotal.toString()).append("\n");
+        receipt.append("Discount: ").append(discountDescription)
+               .append(" -$").append(String.format("%.2f", discountAmount)).append("\n");
+        receipt.append("Tax (").append(String.format("%.1f", TAX_PERCENT))
+               .append("%): $").append(taxAmount.toString()).append("\n");
+        receipt.append("Total: $").append(finalTotal.toString()).append("\n");
         
         // Handle payment
-        // SMELL: Primitive Obsession - Using string instead of PaymentStrategy pattern
-        // SMELL: Shotgun Surgery - To add new payment method, must edit this switch
-        // SMELL: Feature Envy - Payment handling wants to be in PaymentStrategy classes
+        // SMELL: Primitive Obsession - using string switch for payment types
+        // SMELL: Shotgun Surgery - adding new payment method requires editing this method
         if (paymentMethod != null) {
-            switch (paymentMethod.toLowerCase()) {
-                case "cash":
-                    receipt.append("Payment: CASH\n");
-                    receipt.append("Tendered: $").append(finalTotal.add(BigDecimal.valueOf(10)).toString()).append("\n");
-                    receipt.append("Change: $10.00\n");
+            switch (paymentMethod.toUpperCase()) {
+                case "CASH":
+                    receipt.append("Payment: Cash\n");
                     break;
-                case "card":
-                    receipt.append("Payment: CARD\n");
-                    receipt.append("Card charged: $").append(finalTotal.toString()).append("\n");
-                    receipt.append("Transaction approved\n");
+                case "CARD":
+                    receipt.append("Payment: Card\n");
                     break;
-                case "wallet":
-                    receipt.append("Payment: WALLET\n");
-                    receipt.append("Digital wallet charged: $").append(finalTotal.toString()).append("\n");
-                    receipt.append("Payment successful\n");
+                case "WALLET":
+                    receipt.append("Payment: Digital Wallet\n");
                     break;
                 default:
-                    receipt.append("Payment: UNKNOWN\n");
+                    receipt.append("Payment: Unknown\n");
             }
         }
         
-        receipt.append("═══════════════════════════\n");
-        receipt.append("Thank you for your order!\n");
+        receipt.append("===============");
         
         return receipt.toString();
     }
     
-    // SMELL: Global State - Exposing static mutable state
+    // SMELL: Global State - exposing mutable static state
     public static String getLastDiscountCode() {
         return LAST_DISCOUNT_CODE;
-    }
-    
-    // SMELL: Global State - Allowing external mutation of static state
-    public static void resetLastDiscountCode() {
-        LAST_DISCOUNT_CODE = null;
     }
 }
 

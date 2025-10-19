@@ -3,295 +3,294 @@ package tests;
 import smells.OrderManagerGod;
 
 /**
- * Characterization Tests for OrderManagerGod
- * 
- * These tests lock in the existing behavior of the smelly code BEFORE refactoring.
- * They test the exact output format, pricing calculations, discount logic, and payment handling.
- * 
- * ALL TESTS MUST BE GREEN before any refactoring begins.
- * After refactoring, the new implementation must produce identical output.
+ * Characterization Tests for OrderManagerGod.
+ * These tests lock down the current behavior before refactoring.
+ * All tests must remain green after refactoring to ensure behavior preservation.
  */
-public final class Week6CharacterizationTests {
-
-    // Test 1: No discount, cash payment
-    public static void test_no_discount_cash_payment() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("ESP", 1, null, "cash");
-        
-        // Assert key receipt components
-        assert receipt.contains("CAFÉ POS RECEIPT") : "Receipt should contain header";
-        assert receipt.contains("Espresso") : "Receipt should contain product name";
-        assert receipt.contains("Quantity:                  1") : "Receipt should show quantity 1";
-        assert receipt.contains("Unit Price:                $2.50") : "Receipt should show unit price $2.50";
-        assert receipt.contains("Subtotal:                  $2.50") : "Receipt should show subtotal $2.50";
-        assert receipt.contains("Tax (10%):                  $0.25") : "Receipt should show tax $0.25";
-        assert receipt.contains("TOTAL:                     $2.75") : "Receipt should show total $2.75";
-        assert receipt.contains("Payment: CASH") : "Receipt should show cash payment";
-        assert !receipt.contains("Discount") : "Receipt should not contain discount line";
-        
-        System.out.println("✓ test_no_discount_cash_payment passed");
-    }
-
-    // Test 2: Loyalty discount (10%), card payment
-    public static void test_loyalty_discount_card_payment() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("LAT", 2, "LOYALTY10", "card");
-        
-        // Subtotal = 3.20 * 2 = 6.40
-        // Discount = 6.40 * 0.10 = 0.64
-        // After discount = 6.40 - 0.64 = 5.76
-        // Tax = 5.76 * 0.10 = 0.58
-        // Total = 5.76 + 0.58 = 6.34
-        
-        assert receipt.contains("Latte") : "Receipt should contain product name";
-        assert receipt.contains("Quantity:                  2") : "Receipt should show quantity 2";
-        assert receipt.contains("Unit Price:                $3.20") : "Receipt should show unit price $3.20";
-        assert receipt.contains("Subtotal:                  $6.40") : "Receipt should show subtotal $6.40";
-        assert receipt.contains("Discount (LOYALTY10):      -$0.64") : "Receipt should show 10% discount";
-        assert receipt.contains("Tax (10%):                  $0.58") : "Receipt should show tax on discounted amount";
-        assert receipt.contains("TOTAL:                     $6.34") : "Receipt should show final total $6.34";
-        assert receipt.contains("Payment: CARD") : "Receipt should show card payment";
-        assert receipt.contains("Card charged: $6.34") : "Receipt should show card charge amount";
-        
-        System.out.println("✓ test_loyalty_discount_card_payment passed");
-    }
-
-    // Test 3: Fixed coupon ($5 off), with quantity
-    public static void test_fixed_coupon_with_quantity() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("CAP+SHOT", 3, "SAVE5", "wallet");
-        
-        // Unit price = 3.00 + 0.80 = 3.80
-        // Subtotal = 3.80 * 3 = 11.40
-        // Discount = 5.00 (fixed)
-        // After discount = 11.40 - 5.00 = 6.40
-        // Tax = 6.40 * 0.10 = 0.64
-        // Total = 6.40 + 0.64 = 7.04
-        
-        assert receipt.contains("Cappuccino + Extra Shot") : "Receipt should show decorated product";
-        assert receipt.contains("Quantity:                  3") : "Receipt should show quantity 3";
-        assert receipt.contains("Unit Price:                $3.80") : "Receipt should show unit price $3.80";
-        assert receipt.contains("Subtotal:                  $11.40") : "Receipt should show subtotal $11.40";
-        assert receipt.contains("Discount (SAVE5):          -$5.00") : "Receipt should show $5 discount";
-        assert receipt.contains("Tax (10%):                  $0.64") : "Receipt should show tax $0.64";
-        assert receipt.contains("TOTAL:                     $7.04") : "Receipt should show total $7.04";
-        assert receipt.contains("Payment: WALLET") : "Receipt should show wallet payment";
-        
-        System.out.println("✓ test_fixed_coupon_with_quantity passed");
-    }
-
-    // Test 4: Coupon clamping - discount cannot exceed subtotal
-    public static void test_coupon_clamping() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("ESP", 1, "SAVE5", null);
-        
-        // Subtotal = 2.50
-        // Discount would be 5.00, but clamped to 2.50 (cannot exceed subtotal)
-        // After discount = 2.50 - 2.50 = 0.00
-        // Tax = 0.00 * 0.10 = 0.00
-        // Total = 0.00 + 0.00 = 0.00
-        
-        assert receipt.contains("Subtotal:                  $2.50") : "Receipt should show subtotal $2.50";
-        assert receipt.contains("Discount (SAVE5):          -$2.50") : "Discount should be clamped to subtotal";
-        assert receipt.contains("Tax (10%):                  $0.00") : "Tax should be $0.00 on $0.00";
-        assert receipt.contains("TOTAL:                     $0.00") : "Total should be $0.00";
-        
-        System.out.println("✓ test_coupon_clamping passed");
-    }
-
-    // Test 5: Welcome coupon ($2 off)
-    public static void test_welcome_coupon() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("LAT+L", 1, "WELCOME", "cash");
-        
-        // Unit price = 3.20 + 0.70 = 3.90
-        // Subtotal = 3.90
-        // Discount = 2.00
-        // After discount = 3.90 - 2.00 = 1.90
-        // Tax = 1.90 * 0.10 = 0.19
-        // Total = 1.90 + 0.19 = 2.09
-        
-        assert receipt.contains("Latte (Large)") : "Receipt should show large latte";
-        assert receipt.contains("Unit Price:                $3.90") : "Receipt should show unit price $3.90";
-        assert receipt.contains("Subtotal:                  $3.90") : "Receipt should show subtotal $3.90";
-        assert receipt.contains("Discount (WELCOME):        -$2.00") : "Receipt should show $2 welcome discount";
-        assert receipt.contains("Tax (10%):                  $0.19") : "Receipt should show tax $0.19";
-        assert receipt.contains("TOTAL:                     $2.09") : "Receipt should show total $2.09";
-        
-        System.out.println("✓ test_welcome_coupon passed");
-    }
-
-    // Test 6: Complex product with multiple decorators
-    public static void test_complex_product() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("ESP+SHOT+OAT+SYP+L", 2, null, null);
-        
-        // Unit price = 2.50 + 0.80 + 0.50 + 0.40 + 0.70 = 4.90
-        // Subtotal = 4.90 * 2 = 9.80
-        // No discount
-        // Tax = 9.80 * 0.10 = 0.98
-        // Total = 9.80 + 0.98 = 10.78
-        
-        assert receipt.contains("Espresso + Extra Shot + Oat Milk + Syrup (Large)") : 
-            "Receipt should show all decorators";
-        assert receipt.contains("Quantity:                  2") : "Receipt should show quantity 2";
-        assert receipt.contains("Unit Price:                $4.90") : "Receipt should show unit price $4.90";
-        assert receipt.contains("Subtotal:                  $9.80") : "Receipt should show subtotal $9.80";
-        assert receipt.contains("Tax (10%):                  $0.98") : "Receipt should show tax $0.98";
-        assert receipt.contains("TOTAL:                     $10.78") : "Receipt should show total $10.78";
-        
-        System.out.println("✓ test_complex_product passed");
-    }
-
-    // Test 7: Quantity clamping (0 or negative becomes 1)
-    public static void test_quantity_clamping() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt1 = OrderManagerGod.process("ESP", 0, null, null);
-        assert receipt1.contains("Quantity:                  1") : "Zero quantity should be clamped to 1";
-        
-        String receipt2 = OrderManagerGod.process("ESP", -5, null, null);
-        assert receipt2.contains("Quantity:                  1") : "Negative quantity should be clamped to 1";
-        
-        System.out.println("✓ test_quantity_clamping passed");
-    }
-
-    // Test 8: Invalid discount code (ignored)
-    public static void test_invalid_discount_code() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("LAT", 1, "INVALID", "cash");
-        
-        // Invalid code should be ignored, no discount applied
-        assert !receipt.contains("Discount") : "Invalid discount code should be ignored";
-        assert receipt.contains("Subtotal:                  $3.20") : "Subtotal should be $3.20";
-        assert receipt.contains("Tax (10%):                  $0.32") : "Tax should be on full amount";
-        assert receipt.contains("TOTAL:                     $3.52") : "Total should be full price + tax";
-        
-        System.out.println("✓ test_invalid_discount_code passed");
-    }
-
-    // Test 9: Empty discount code (treated as null)
-    public static void test_empty_discount_code() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("CAP", 1, "", "card");
-        
-        assert !receipt.contains("Discount") : "Empty discount code should be treated as no discount";
-        assert receipt.contains("Subtotal:                  $3.00") : "Subtotal should be $3.00";
-        assert receipt.contains("Tax (10%):                  $0.30") : "Tax should be on full amount";
-        assert receipt.contains("TOTAL:                     $3.30") : "Total should be full price + tax";
-        
-        System.out.println("✓ test_empty_discount_code passed");
-    }
-
-    // Test 10: Wallet payment
-    public static void test_wallet_payment() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("ESP", 1, null, "wallet");
-        
-        assert receipt.contains("Payment: WALLET") : "Receipt should show wallet payment";
-        assert receipt.contains("Digital wallet charged: $2.75") : "Receipt should show wallet charge";
-        assert receipt.contains("Payment successful") : "Receipt should confirm payment success";
-        
-        System.out.println("✓ test_wallet_payment passed");
-    }
-
-    // Test 11: Case insensitivity of discount codes
-    public static void test_discount_code_case_insensitive() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt1 = OrderManagerGod.process("ESP", 1, "loyalty10", null);
-        assert receipt1.contains("Discount (loyalty10)") : "Lowercase discount code should work";
-        
-        OrderManagerGod.resetLastDiscountCode();
-        String receipt2 = OrderManagerGod.process("ESP", 1, "LOYALTY10", null);
-        assert receipt2.contains("Discount (LOYALTY10)") : "Uppercase discount code should work";
-        
-        OrderManagerGod.resetLastDiscountCode();
-        String receipt3 = OrderManagerGod.process("ESP", 1, "LoYaLtY10", null);
-        assert receipt3.contains("Discount (LoYaLtY10)") : "Mixed case discount code should work";
-        
-        System.out.println("✓ test_discount_code_case_insensitive passed");
-    }
-
-    // Test 12: Global state tracking (LAST_DISCOUNT_CODE)
-    public static void test_global_state_tracking() {
-        OrderManagerGod.resetLastDiscountCode();
-        assert OrderManagerGod.getLastDiscountCode() == null : "Initial state should be null";
-        
-        OrderManagerGod.process("ESP", 1, "LOYALTY10", null);
-        assert "LOYALTY10".equals(OrderManagerGod.getLastDiscountCode()) : 
-            "Last discount code should be stored";
-        
-        OrderManagerGod.process("LAT", 1, "SAVE5", null);
-        assert "SAVE5".equals(OrderManagerGod.getLastDiscountCode()) : 
-            "Last discount code should be updated";
-        
-        OrderManagerGod.resetLastDiscountCode();
-        assert OrderManagerGod.getLastDiscountCode() == null : "Reset should clear state";
-        
-        System.out.println("✓ test_global_state_tracking passed");
-    }
-
-    // Test 13: No payment method specified
-    public static void test_no_payment_method() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        String receipt = OrderManagerGod.process("ESP", 1, null, null);
-        
-        // No payment section should be added when payment method is null
-        assert !receipt.contains("Payment:") : "Receipt should not have payment section when null";
-        
-        System.out.println("✓ test_no_payment_method passed");
-    }
-
-    // Test 14: Edge case - WELCOME coupon exceeds subtotal
-    public static void test_welcome_coupon_clamping() {
-        OrderManagerGod.resetLastDiscountCode();
-        
-        // Create a cheap item where WELCOME ($2) exceeds subtotal
-        String receipt = OrderManagerGod.process("ESP", 1, "WELCOME", null);
-        
-        // Subtotal = 2.50, WELCOME = 2.00 (within limit, no clamping)
-        assert receipt.contains("Discount (WELCOME):        -$2.00") : 
-            "WELCOME discount should be $2.00 when subtotal is $2.50";
-        
-        System.out.println("✓ test_welcome_coupon_clamping passed");
-    }
-
+public class Week6CharacterizationTests {
+    
+    private static int testsRun = 0;
+    private static int testsPassed = 0;
+    
     public static void main(String[] args) {
-        System.out.println("═════════════════════════════════════════════════════════");
-        System.out.println("  Week 6 - Characterization Tests for OrderManagerGod");
-        System.out.println("  These tests lock in existing behavior before refactoring");
-        System.out.println("═════════════════════════════════════════════════════════\n");
+        System.out.println("=== Week 6 Characterization Tests ===\n");
         
-        test_no_discount_cash_payment();
-        test_loyalty_discount_card_payment();
-        test_fixed_coupon_with_quantity();
-        test_coupon_clamping();
-        test_welcome_coupon();
-        test_complex_product();
-        test_quantity_clamping();
-        test_invalid_discount_code();
-        test_empty_discount_code();
-        test_wallet_payment();
-        test_discount_code_case_insensitive();
-        test_global_state_tracking();
-        test_no_payment_method();
-        test_welcome_coupon_clamping();
+        // Test 1: Basic order with no discount, cash payment
+        testBasicOrderNoDicountCash();
         
-        System.out.println("\n═════════════════════════════════════════════════════════");
-        System.out.println("  ✓ All 14 characterization tests passed!");
-        System.out.println("  Behavior is locked in. Safe to refactor.");
-        System.out.println("═════════════════════════════════════════════════════════");
+        // Test 2: Basic order with no discount, card payment
+        testBasicOrderNoDiscountCard();
+        
+        // Test 3: Order with LOYALTY10 discount and cash
+        testLoyalty10DiscountCash();
+        
+        // Test 4: Order with LOYALTY10 discount and card
+        testLoyalty10DiscountCard();
+        
+        // Test 5: Order with SUMMER20 discount
+        testSummer20Discount();
+        
+        // Test 6: Order with COUPON5 fixed discount
+        testCoupon5FixedDiscount();
+        
+        // Test 7: Coupon discount capped at subtotal
+        testCouponDiscountCapped();
+        
+        // Test 8: Multiple quantities
+        testMultipleQuantities();
+        
+        // Test 9: Quantity clamping (negative becomes 1)
+        testQuantityClamping();
+        
+        // Test 10: Complex product with decorators
+        testComplexProduct();
+        
+        // Test 11: Wallet payment
+        testWalletPayment();
+        
+        // Test 12: Invalid discount code (treated as no discount)
+        testInvalidDiscountCode();
+        
+        System.out.println("\n=== Test Summary ===");
+        System.out.println("Tests run: " + testsRun);
+        System.out.println("Tests passed: " + testsPassed);
+        System.out.println("Tests failed: " + (testsRun - testsPassed));
+        
+        if (testsRun == testsPassed) {
+            System.out.println("\n✓ All tests passed!");
+            System.exit(0);
+        } else {
+            System.out.println("\n✗ Some tests failed!");
+            System.exit(1);
+        }
+    }
+    
+    private static void testBasicOrderNoDicountCash() {
+        testsRun++;
+        String result = OrderManagerGod.process("ESP", 1, null, "CASH");
+        
+        assertContains(result, "Item: Espresso", "Basic order - item name");
+        assertContains(result, "Quantity: 1", "Basic order - quantity");
+        assertContains(result, "Unit Price: $2.50", "Basic order - unit price");
+        assertContains(result, "Subtotal: $2.50", "Basic order - subtotal");
+        assertContains(result, "Discount: None -$0.00", "Basic order - no discount");
+        assertContains(result, "Tax (7.0%): $0.18", "Basic order - tax");
+        assertContains(result, "Total: $2.68", "Basic order - total");
+        assertContains(result, "Payment: Cash", "Basic order - payment method");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 1: Basic order no discount cash - PASSED");
+        } else {
+            System.out.println("✗ Test 1: Basic order no discount cash - FAILED");
+        }
+    }
+    
+    private static void testBasicOrderNoDiscountCard() {
+        testsRun++;
+        String result = OrderManagerGod.process("LAT", 1, "", "CARD");
+        
+        assertContains(result, "Item: Latte", "Basic order card - item name");
+        assertContains(result, "Subtotal: $3.20", "Basic order card - subtotal");
+        assertContains(result, "Discount: None -$0.00", "Basic order card - no discount");
+        assertContains(result, "Tax (7.0%): $0.22", "Basic order card - tax");
+        assertContains(result, "Total: $3.42", "Basic order card - total");
+        assertContains(result, "Payment: Card", "Basic order card - payment method");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 2: Basic order no discount card - PASSED");
+        } else {
+            System.out.println("✗ Test 2: Basic order no discount card - FAILED");
+        }
+    }
+    
+    private static void testLoyalty10DiscountCash() {
+        testsRun++;
+        String result = OrderManagerGod.process("CAP", 1, "LOYALTY10", "CASH");
+        
+        assertContains(result, "Item: Cappuccino", "Loyalty10 - item name");
+        assertContains(result, "Subtotal: $3.00", "Loyalty10 - subtotal");
+        assertContains(result, "Discount: Loyalty 10% -$0.30", "Loyalty10 - discount");
+        assertContains(result, "Tax (7.0%): $0.19", "Loyalty10 - tax");
+        assertContains(result, "Total: $2.89", "Loyalty10 - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 3: Loyalty 10% discount cash - PASSED");
+        } else {
+            System.out.println("✗ Test 3: Loyalty 10% discount cash - FAILED");
+        }
+    }
+    
+    private static void testLoyalty10DiscountCard() {
+        testsRun++;
+        String result = OrderManagerGod.process("ESP", 2, "LOYALTY10", "CARD");
+        
+        assertContains(result, "Quantity: 2", "Loyalty10 card - quantity");
+        assertContains(result, "Subtotal: $5.00", "Loyalty10 card - subtotal");
+        assertContains(result, "Discount: Loyalty 10% -$0.50", "Loyalty10 card - discount");
+        assertContains(result, "Tax (7.0%): $0.32", "Loyalty10 card - tax");
+        assertContains(result, "Total: $4.82", "Loyalty10 card - total");
+        assertContains(result, "Payment: Card", "Loyalty10 card - payment");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 4: Loyalty 10% discount card - PASSED");
+        } else {
+            System.out.println("✗ Test 4: Loyalty 10% discount card - FAILED");
+        }
+    }
+    
+    private static void testSummer20Discount() {
+        testsRun++;
+        String result = OrderManagerGod.process("LAT", 1, "SUMMER20", "CASH");
+        
+        assertContains(result, "Subtotal: $3.20", "Summer20 - subtotal");
+        assertContains(result, "Discount: Summer 20% -$0.64", "Summer20 - discount");
+        assertContains(result, "Tax (7.0%): $0.18", "Summer20 - tax");
+        assertContains(result, "Total: $2.74", "Summer20 - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 5: Summer 20% discount - PASSED");
+        } else {
+            System.out.println("✗ Test 5: Summer 20% discount - FAILED");
+        }
+    }
+    
+    private static void testCoupon5FixedDiscount() {
+        testsRun++;
+        String result = OrderManagerGod.process("LAT", 2, "COUPON5", "CARD");
+        
+        assertContains(result, "Subtotal: $6.40", "Coupon5 - subtotal");
+        assertContains(result, "Discount: Coupon $5.00 -$5.00", "Coupon5 - discount");
+        assertContains(result, "Tax (7.0%): $0.10", "Coupon5 - tax");
+        assertContains(result, "Total: $1.50", "Coupon5 - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 6: Coupon $5 fixed discount - PASSED");
+        } else {
+            System.out.println("✗ Test 6: Coupon $5 fixed discount - FAILED");
+        }
+    }
+    
+    private static void testCouponDiscountCapped() {
+        testsRun++;
+        String result = OrderManagerGod.process("ESP", 1, "COUPON5", "CASH");
+        
+        assertContains(result, "Subtotal: $2.50", "Coupon capped - subtotal");
+        assertContains(result, "Discount: Coupon $5.00 -$2.50", "Coupon capped - discount capped at subtotal");
+        assertContains(result, "Tax (7.0%): $0.00", "Coupon capped - tax");
+        assertContains(result, "Total: $0.00", "Coupon capped - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 7: Coupon discount capped at subtotal - PASSED");
+        } else {
+            System.out.println("✗ Test 7: Coupon discount capped at subtotal - FAILED");
+        }
+    }
+    
+    private static void testMultipleQuantities() {
+        testsRun++;
+        String result = OrderManagerGod.process("CAP", 3, null, "CASH");
+        
+        assertContains(result, "Quantity: 3", "Multiple qty - quantity");
+        assertContains(result, "Unit Price: $3.00", "Multiple qty - unit price");
+        assertContains(result, "Subtotal: $9.00", "Multiple qty - subtotal");
+        assertContains(result, "Tax (7.0%): $0.63", "Multiple qty - tax");
+        assertContains(result, "Total: $9.63", "Multiple qty - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 8: Multiple quantities - PASSED");
+        } else {
+            System.out.println("✗ Test 8: Multiple quantities - FAILED");
+        }
+    }
+    
+    private static void testQuantityClamping() {
+        testsRun++;
+        String result = OrderManagerGod.process("ESP", -5, null, "CASH");
+        
+        assertContains(result, "Quantity: 1", "Quantity clamping - clamped to 1");
+        assertContains(result, "Subtotal: $2.50", "Quantity clamping - subtotal");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 9: Quantity clamping - PASSED");
+        } else {
+            System.out.println("✗ Test 9: Quantity clamping - FAILED");
+        }
+    }
+    
+    private static void testComplexProduct() {
+        testsRun++;
+        String result = OrderManagerGod.process("LAT+SHOT+OAT", 1, "LOYALTY10", "CARD");
+        
+        assertContains(result, "Item: Latte + Extra Shot + Oat Milk", "Complex product - name");
+        assertContains(result, "Unit Price: $4.60", "Complex product - unit price");
+        assertContains(result, "Subtotal: $4.60", "Complex product - subtotal");
+        assertContains(result, "Discount: Loyalty 10% -$0.46", "Complex product - discount");
+        assertContains(result, "Tax (7.0%): $0.29", "Complex product - tax");
+        assertContains(result, "Total: $4.43", "Complex product - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 10: Complex product with decorators - PASSED");
+        } else {
+            System.out.println("✗ Test 10: Complex product with decorators - FAILED");
+        }
+    }
+    
+    private static void testWalletPayment() {
+        testsRun++;
+        String result = OrderManagerGod.process("ESP", 1, null, "WALLET");
+        
+        assertContains(result, "Payment: Digital Wallet", "Wallet payment - method");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 11: Wallet payment - PASSED");
+        } else {
+            System.out.println("✗ Test 11: Wallet payment - FAILED");
+        }
+    }
+    
+    private static void testInvalidDiscountCode() {
+        testsRun++;
+        String result = OrderManagerGod.process("CAP", 1, "INVALID", "CASH");
+        
+        assertContains(result, "Subtotal: $3.00", "Invalid discount - subtotal");
+        assertContains(result, "Discount: None -$0.00", "Invalid discount - treated as no discount");
+        assertContains(result, "Total: $3.21", "Invalid discount - total");
+        
+        if (allAssertsPass()) {
+            testsPassed++;
+            System.out.println("✓ Test 12: Invalid discount code - PASSED");
+        } else {
+            System.out.println("✗ Test 12: Invalid discount code - FAILED");
+        }
+    }
+    
+    // Helper methods for assertions
+    private static boolean lastAssertPassed = true;
+    
+    private static void assertContains(String actual, String expected, String message) {
+        if (!actual.contains(expected)) {
+            System.out.println("  ASSERTION FAILED: " + message);
+            System.out.println("    Expected to contain: " + expected);
+            System.out.println("    Actual output:\n" + actual);
+            lastAssertPassed = false;
+        }
+    }
+    
+    private static boolean allAssertsPass() {
+        boolean result = lastAssertPassed;
+        lastAssertPassed = true; // Reset for next test
+        return result;
     }
 }
 
