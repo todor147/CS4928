@@ -1,9 +1,6 @@
 package com.cafepos;
 
-import com.cafepos.strategy.CardPaymentStrategy;
-import com.cafepos.strategy.CashPaymentStrategy;
-import com.cafepos.strategy.PaymentStrategy;
-import com.cafepos.strategy.WalletPaymentStrategy;
+import com.cafepos.payment.*;
 
 public final class PaymentStrategyFactory {
     public static PaymentStrategy createPaymentStrategy(String paymentType) {
@@ -13,11 +10,11 @@ public final class PaymentStrategyFactory {
         
         switch (paymentType.toUpperCase()) {
             case "CASH":
-                return new CashPaymentStrategy();
+                return new CashPayment();
             case "CARD":
-                return new CardPaymentStrategy("1234");
+                return new CardPayment("1234");
             case "WALLET":
-                return new WalletPaymentStrategy("user-wallet-789");
+                return new WalletPayment("user-wallet-789");
             default:
                 return null;
         }
