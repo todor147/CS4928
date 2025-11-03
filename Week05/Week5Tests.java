@@ -8,7 +8,7 @@ public final class Week5Tests {
         assert withShot.name().equals("Espresso + Extra Shot") : "Name should be 'Espresso + Extra Shot'";
         assert ((Priced) withShot).price().equals(Money.of(3.30)) : "Price should be $3.30";
         
-        System.out.println("✓ test_decorator_single_addon passed");
+        System.out.println("[PASS] test_decorator_single_addon passed");
     }
 
     // Test 2: Multiple decorators stack correctly
@@ -21,7 +21,7 @@ public final class Week5Tests {
         assert ((Priced) decorated).price().equals(Money.of(4.50)) : 
             "Price should be $4.50 (2.50 + 0.80 + 0.50 + 0.70)";
         
-        System.out.println("✓ test_decorator_stacks passed");
+        System.out.println("[PASS] test_decorator_stacks passed");
     }
 
     // Test 3: Factory parses recipes correctly
@@ -32,7 +32,7 @@ public final class Week5Tests {
         assert p.name().contains("Espresso") : "Name should contain 'Espresso'";
         assert p.name().contains("Oat Milk") : "Name should contain 'Oat Milk'";
         
-        System.out.println("✓ test_factory_parses_recipe passed");
+        System.out.println("[PASS] test_factory_parses_recipe passed");
     }
 
     // Test 4: Order uses decorated price
@@ -45,7 +45,7 @@ public final class Week5Tests {
         
         assert o.subtotal().equals(Money.of(6.60)) : "Subtotal should be $6.60 (3.30 * 2)";
         
-        System.out.println("✓ test_order_uses_decorated_price passed");
+        System.out.println("[PASS] test_order_uses_decorated_price passed");
     }
 
     // Test 5: Factory vs Manual - they should build the same drink
@@ -81,7 +81,7 @@ public final class Week5Tests {
         assert orderFactory.totalWithTax(10).equals(orderManual.totalWithTax(10)) : 
             "Totals with tax should match";
         
-        System.out.println("✓ test_factory_vs_manual passed");
+        System.out.println("[PASS] test_factory_vs_manual passed");
     }
 
     // Test 6: Different decoration orders yield same price
@@ -97,7 +97,7 @@ public final class Week5Tests {
         Money price2 = ((Priced) order2).price();
         assert price1.equals(price2) : "Decoration order should not affect price";
         
-        System.out.println("✓ test_decoration_order_independence passed");
+        System.out.println("[PASS] test_decoration_order_independence passed");
     }
 
     // Test 7: Test all base products
@@ -116,7 +116,7 @@ public final class Week5Tests {
         assert cap.name().equals("Cappuccino") : "CAP should create Cappuccino";
         assert ((Priced) cap).price().equals(Money.of(3.00)) : "Cappuccino should be $3.00";
         
-        System.out.println("✓ test_all_base_products passed");
+        System.out.println("[PASS] test_all_base_products passed");
     }
 
     // Test 8: Test all decorators individually
@@ -135,7 +135,7 @@ public final class Week5Tests {
         Product withLarge = new SizeLarge(base);
         assert ((Priced) withLarge).price().equals(Money.of(1.70)) : "SizeLarge should add $0.70";
         
-        System.out.println("✓ test_all_decorators passed");
+        System.out.println("[PASS] test_all_decorators passed");
     }
 
     public static void main(String[] args) {
@@ -150,7 +150,7 @@ public final class Week5Tests {
         test_all_base_products();
         test_all_decorators();
         
-        System.out.println("\n✓ All tests passed!");
+        System.out.println("\n[PASS] All tests passed!");
     }
 }
 
