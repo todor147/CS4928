@@ -1,0 +1,155 @@
+@startuml Observer Pattern Class Diagram
+
+!theme plain
+
+class Order {
+    - id: long
+    - items: List<LineItem>
+    - observers: List<OrderObserver>
+    + Order(id: long)
+    + addItem(li: LineItem): void
+    + pay(strategy: PaymentStrategy): void
+    + markReady(): void
+    + register(observer: OrderObserver): void
+    + unregister(observer: OrderObserver): void
+    + notifyObservers(eventType: String): void
+    + subtotal(): Money
+    + taxAtPercent(percent: int): Money
+    + totalWithTax(percent: int): Money
+    + id(): long
+    + getItems(): List<LineItem>
+    + getItemCount(): int
+}
+
+interface OrderObserver {
+    + updated(order: Order, eventType: String): void
+}
+
+interface OrderPublisher {
+    + register(observer: OrderObserver): void
+    + unregister(observer: OrderObserver): void
+    + notifyObservers(order: Order, eventType: String): void
+}
+
+class KitchenDisplay {
+    + updated(order: Order, eventType: String): void
+}
+
+class DeliveryDesk {
+    + updated(order: Order, eventType: String): void
+}
+
+class CustomerNotifier {
+    + updated(order: Order, eventType: String): void
+}
+
+interface PaymentStrategy {
+    + pay(order: Order): void
+}
+
+class CashPayment {
+    + pay(order: Order): void
+}
+
+class CardPayment {
+    - cardNumber: String
+    + CardPayment(cardNumber: String)
+    + pay(order: Order): void
+}
+
+class WalletPayment {
+    - walletId: String
+    + WalletPayment(walletId: String)
+    + pay(order: Order): void
+}
+
+class LineItem {
+    - product: Product
+    - quantity: int
+    + LineItem(product: Product, quantity: int)
+    + product(): Product
+    + quantity(): int
+    + lineTotal(): Money
+}
+
+interface Product {
+    + id(): String
+    + name(): String
+    + basePrice(): Money
+}
+
+class SimpleProduct {
+    - id: String
+    - name: String
+    - basePrice: Money
+    + SimpleProduct(id: String, name: String, basePrice: Money)
+    + id(): String
+    + name(): String
+    + basePrice(): Money
+}
+
+class Money {
+    - amount: BigDecimal
+    + Money(amount: BigDecimal)
+    + of(value: double): Money
+    + zero(): Money
+    + add(other: Money): Money
+    + multiply(factor: int): Money
+    + getAmount(): BigDecimal
+    + equals(obj: Object): boolean
+    + hashCode(): int
+    + compareTo(other: Money): int
+    + toString(): String
+}
+
+interface Catalog {
+    + add(product: Product): void
+    + findById(id: String): Optional<Product>
+}
+
+class InMemoryCatalog {
+    - products: Map<String, Product>
+    + add(product: Product): void
+    + findById(id: String): Optional<Product>
+}
+
+class OrderIds {
+    - nextId: long
+    + next(): long
+}
+
+' Relationships
+Order ..|> OrderPublisher : implements
+Order --> OrderObserver : notifies
+Order --> PaymentStrategy : uses
+Order --> LineItem : contains
+
+KitchenDisplay ..|> OrderObserver : implements
+DeliveryDesk ..|> OrderObserver : implements
+CustomerNotifier ..|> OrderObserver : implements
+
+CashPayment ..|> PaymentStrategy : implements
+CardPayment ..|> PaymentStrategy : implements
+WalletPayment ..|> PaymentStrategy : implements
+
+LineItem --> Product : contains
+SimpleProduct ..|> Product : implements
+
+InMemoryCatalog ..|> Catalog : implements
+InMemoryCatalog --> Product : stores
+
+' Notes
+note right of Order : Publisher in Observer Pattern
+note right of OrderObserver : Observer interface
+note right of KitchenDisplay : Concrete Observer
+note right of DeliveryDesk : Concrete Observer
+note right of CustomerNotifier : Concrete Observer
+note right of PaymentStrategy : Strategy Pattern from Week 3
+
+@enduml
+
+
+
+
+
+
