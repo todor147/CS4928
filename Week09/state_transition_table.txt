@@ -1,0 +1,70 @@
+STATE TRANSITION TABLE
+
+Legend:
+  Y = Transition allowed (target state shown)
+  N = Transition disallowed
+
++------------+------+----------+-----------+----------+--------+
+| State      | pay  | prepare  | markReady | deliver  | cancel |
++------------+------+----------+-----------+----------+--------+
+| NEW        | Y    | N        | N         | N        | Y      |
+|            |      |          |           |          |        |
+|            | ->   | Cannot   | Cannot    | Cannot   | ->     |
+|            | PREP | prepare  | mark      | deliver  | CANC   |
+|            |      | -        | ready -   | - order  |        |
+|            |      | payment  | order not | not      |        |
+|            |      | required | prepared  | ready    |        |
+|            |      | first    | yet       | yet      |        |
++------------+------+----------+-----------+----------+--------+
+| PREPARING  | N    | N        | Y         | N        | Y      |
+|            |      |          |           |          |        |
+|            | Pay  | Already  | ->        | Cannot   | ->     |
+|            | alr  | prepar   | READY     | deliver  | CANC   |
+|            | rec  | ing      |           | - order  |        |
+|            |      |          |           | not      |        |
+|            |      |          |           | ready    |        |
+|            |      |          |           | yet      |        |
++------------+------+----------+-----------+----------+--------+
+| READY      | N    | N        | N         | Y        | Y      |
+|            |      |          |           |          |        |
+|            | Pay  | Already  | Already   | ->        | ->     |
+|            | alr  | prepar   | ready     | DELIVERED | CANC   |
+|            | rec  | ed       |           |           |        |
++------------+------+----------+-----------+----------+--------+
+| DELIVERED  | N    | N        | N         | N        | N      |
+|            |      |          |           |          |        |
+|            | Ord  | Order    | Order     | Order    | Cannot |
+|            | alr  | already  | already   | already  | cancel |
+|            | del  | deliver  | deliver   | deliver  | -      |
+|            |      | ed       | ed        | ed       | order  |
+|            |      |          |           |          | already|
+|            |      |          |           |          | deliver|
+|            |      |          |           |          | ed     |
++------------+------+----------+-----------+----------+--------+
+| CANCELLED  | N    | N        | N         | N        | N      |
+|            |      |          |           |          |        |
+|            | Can  | Cannot   | Cannot    | Cannot   | Order  |
+|            | not  | prepare  | mark      | deliver  | alr    |
+|            | pay  | - order  | ready -   | - order  | can    |
+|            | -    | is       | order is  | is       | cell   |
+|            | ord  | cancel   | cancel    | cancel   | ed     |
+|            | is   | led      | led       | led      |        |
+|            | can  |          |           |          |        |
+|            | cel  |          |           |          |        |
+|            | led  |          |           |          |        |
++------------+------+----------+-----------+----------+--------+
+
+NOTES:
+- NEW state: Only pay() and cancel() are valid. Payment must occur before preparation.
+- PREPARING state: Only markReady() and cancel() are valid. Order must be marked ready before delivery.
+- READY state: Only deliver() and cancel() are valid. Order is ready for delivery.
+- DELIVERED state: Terminal state. All actions are rejected as order is complete.
+- CANCELLED state: Terminal state. All actions are rejected as order is cancelled.
+
+VALID TRANSITION PATHS:
+1. Happy path: NEW -> pay() -> PREPARING -> markReady() -> READY -> deliver() -> DELIVERED
+2. Cancellation from NEW: NEW -> cancel() -> CANCELLED
+3. Cancellation from PREPARING: NEW -> pay() -> PREPARING -> cancel() -> CANCELLED
+4. Cancellation from READY: NEW -> pay() -> PREPARING -> markReady() -> READY -> cancel() -> CANCELLED
+
+
