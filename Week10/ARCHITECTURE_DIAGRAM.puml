@@ -1,0 +1,211 @@
+@startuml Week10_Architecture_Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam ArrowColor #333333
+skinparam packageBackgroundColor #E8F5E9
+skinparam packageBorderColor #4CAF50
+skinparam classBackgroundColor #FFF9C4
+skinparam classBorderColor #FBC02D
+skinparam interfaceBackgroundColor #E1F5FE
+skinparam interfaceBorderColor #2196F3
+
+title **Week 10 - Layered Architecture + MVC + Components/Connectors**\nCafé POS System Architecture
+
+package "Presentation Layer\n(UI)" #FFE0B2 {
+    class OrderController {
+        - repo: OrderRepository
+        - checkout: CheckoutService
+        - factory: ProductFactory
+        + createOrder(id: long): long
+        + addItem(orderId, recipe, qty): void
+        + checkout(orderId, taxPercent): String
+    }
+    
+    class ConsoleView {
+        + print(s: String): void
+    }
+    
+    class EventWiringDemo {
+        + main(args): void
+    }
+}
+
+package "Application Layer\n(Use Cases)" #BBDEFB {
+    class CheckoutService {
+        - orders: OrderRepository
+        - pricing: PricingService
+        + checkout(orderId, taxPercent): String
+    }
+    
+    class ReceiptFormatter {
+        + format(id, items, pr, taxPercent): String
+    }
+    
+    package "events" {
+        interface OrderEvent {
+        }
+        
+        class OrderCreated {
+            + orderId: long
+        }
+        
+        class OrderPaid {
+            + orderId: long
+        }
+        
+        class EventBus {
+            - handlers: Map<Class, List<Consumer>>
+            + on(type, handler): void
+            + emit(event): void
+        }
+    }
+}
+
+package "Domain Layer\n(Core Business)" #C8E6C9 {
+    class Order {
+        - id: long
+        - items: List<LineItem>
+        + id(): long
+        + items(): List<LineItem>
+        + addItem(li: LineItem): void
+        + removeLastItem(): void
+        + subtotal(): Money
+        + taxAtPercent(percent): Money
+        + totalWithTax(percent): Money
+    }
+    
+    class LineItem {
+        - product: Product
+        - quantity: int
+        + product(): Product
+        + quantity(): int
+        + lineTotal(): Money
+    }
+    
+    interface OrderRepository {
+        + save(order: Order): void
+        + findById(id: long): Optional<Order>
+    }
+}
+
+package "Infrastructure Layer\n(Adapters)" #F8BBD0 {
+    class InMemoryOrderRepository {
+        - store: Map<Long, Order>
+        + save(order: Order): void
+        + findById(id: long): Optional<Order>
+    }
+    
+    class Wiring {
+        + createDefault(): Components
+    }
+}
+
+package "Supporting Components" #FFF9C4 {
+    class ProductFactory {
+        + create(recipe: String): Product
+    }
+    
+    interface Product {
+        + id(): String
+        + name(): String
+        + basePrice(): Money
+    }
+    
+    class PricingService {
+        - discountPolicy: DiscountPolicy
+        - taxPolicy: TaxPolicy
+        + price(subtotal: Money): PricingResult
+    }
+    
+    interface DiscountPolicy {
+        + discountOf(subtotal: Money): Money
+    }
+    
+    interface TaxPolicy {
+        + taxOn(amount: Money): Money
+    }
+    
+    class Money {
+        + of(value: double): Money
+        + add(other: Money): Money
+        + multiply(qty: int): Money
+    }
+}
+
+' Dependencies - Presentation → Application → Domain
+OrderController --> CheckoutService : uses
+OrderController --> OrderRepository : uses
+OrderController --> ProductFactory : uses
+ConsoleView ..> OrderController : displays output from
+
+CheckoutService --> OrderRepository : uses
+CheckoutService --> PricingService : uses
+ReceiptFormatter --> LineItem : formats
+
+' Domain dependencies
+Order --> LineItem : contains
+LineItem --> Product : references
+LineItem --> Money : uses
+
+' Infrastructure implements Domain interfaces
+InMemoryOrderRepository ..|> OrderRepository : implements
+InMemoryOrderRepository --> Order : stores
+
+' Wiring composes everything
+Wiring --> InMemoryOrderRepository : creates
+Wiring --> PricingService : creates
+Wiring --> CheckoutService : creates
+
+' Event system
+EventBus --> OrderEvent : handles
+OrderCreated ..|> OrderEvent : implements
+OrderPaid ..|> OrderEvent : implements
+EventWiringDemo --> EventBus : uses
+EventWiringDemo --> OrderController : uses
+
+' Supporting components
+ProductFactory --> Product : creates
+PricingService --> DiscountPolicy : uses
+PricingService --> TaxPolicy : uses
+PricingService --> Money : uses
+
+' Layer boundaries (dependencies point inward)
+note right of OrderController
+  **Presentation Layer**
+  - Handles I/O
+  - User interactions
+  - Delegates to Application
+end note
+
+note right of CheckoutService
+  **Application Layer**
+  - Orchestrates use cases
+  - No I/O or persistence
+  - Coordinates Domain + Infra
+end note
+
+note right of Order
+  **Domain Layer**
+  - Core business logic
+  - Independent of other layers
+  - Pure business rules
+end note
+
+note right of InMemoryOrderRepository
+  **Infrastructure Layer**
+  - Implements Domain interfaces
+  - Provides adapters
+  - External system integration
+end note
+
+note bottom of EventBus
+  **Component Connector**
+  - Event-driven communication
+  - Loose coupling
+  - Publish/Subscribe pattern
+end note
+
+@enduml
+

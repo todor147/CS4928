@@ -4,6 +4,8 @@ import com.cafepos.order.*;
 import com.cafepos.payment.*;
 import com.cafepos.command.*;
 import com.cafepos.common.Money;
+import com.cafepos.DiscountPolicyFactory;
+import com.cafepos.pricing.*;
 import java.util.Scanner;
 
 public final class Week8Demo_Interactive {
@@ -11,6 +13,7 @@ public final class Week8Demo_Interactive {
     private static Order order;
     private static OrderService service;
     private static PosRemote remote;
+    private static DiscountPolicy discountPolicy = new NoDiscount();
     private static final int TAX_PERCENT = 10;
     
     public static void main(String[] args) {
@@ -24,6 +27,7 @@ public final class Week8Demo_Interactive {
         order = new Order(OrderIds.next());
         service = new OrderService(order);
         remote = new PosRemote(10); // 10 slots available
+        discountPolicy = new NoDiscount(); // Reset discount
         
         System.out.println("System initialized!");
         System.out.println("Order ID: " + order.id());
@@ -41,9 +45,10 @@ public final class Week8Demo_Interactive {
                 case 3 -> pressSlot();
                 case 4 -> undo();
                 case 5 -> viewOrder();
-                case 6 -> pay();
-                case 7 -> clearOrder();
-                case 8 -> running = false;
+                case 6 -> applyDiscount();
+                case 7 -> pay();
+                case 8 -> clearOrder();
+                case 9 -> running = false;
                 default -> System.out.println("Invalid choice. Please try again.");
             }
             
@@ -67,9 +72,10 @@ public final class Week8Demo_Interactive {
         System.out.println("│  3. Press Slot (execute command from button)             │");
         System.out.println("│  4. Undo Last Action                                     │");
         System.out.println("│  5. View Current Order                                   │");
-        System.out.println("│  6. Pay Order (choose payment method)                   │");
-        System.out.println("│  7. Clear Order (start new order)                        │");
-        System.out.println("│  8. Exit                                                 │");
+        System.out.println("│  6. Apply Discount                                       │");
+        System.out.println("│  7. Pay Order (choose payment method)                   │");
+        System.out.println("│  8. Clear Order (start new order)                        │");
+        System.out.println("│  9. Exit                                                 │");
         System.out.println("└──────────────────────────────────────────────────────────┘");
     }
     
@@ -223,9 +229,58 @@ public final class Week8Demo_Interactive {
         }
         
         System.out.println();
-        System.out.println("Subtotal: " + order.subtotal());
-        System.out.println("Tax (" + TAX_PERCENT + "%): " + order.taxAtPercent(TAX_PERCENT));
-        System.out.println("Total: " + order.totalWithTax(TAX_PERCENT));
+        Money subtotal = order.subtotal();
+        System.out.println("Subtotal: " + subtotal);
+        
+        // Calculate pricing with discount
+        PricingService currentPricing = new PricingService(discountPolicy, new FixedRateTaxPolicy(TAX_PERCENT));
+        PricingService.PricingResult pricing = currentPricing.price(subtotal);
+        
+        if (pricing.discount().getAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            System.out.println("Discount: -" + pricing.discount() + " EUR");
+            System.out.println("After discount: " + subtotal.getAmount().subtract(pricing.discount().getAmount()));
+        } else {
+            System.out.println("Discount: None");
+        }
+        
+        System.out.println("Tax (" + TAX_PERCENT + "%): " + pricing.tax());
+        System.out.println("Total: " + pricing.total() + " EUR");
+    }
+    
+    private static void applyDiscount() {
+        System.out.println("=== Apply Discount ===");
+        System.out.println();
+        System.out.println("Available discount codes:");
+        System.out.println("  LOYAL5  - 5% Loyalty Discount");
+        System.out.println("  COUPON1 - €1.00 Fixed Coupon Discount");
+        System.out.println("  NONE    - Remove discount");
+        System.out.println();
+        
+        String discountCode = getStringInput("Enter discount code: ").trim().toUpperCase();
+        
+        discountPolicy = DiscountPolicyFactory.createDiscountPolicy(discountCode);
+        
+        if (discountCode.equals("NONE") || discountPolicy instanceof NoDiscount) {
+            System.out.println("✓ Discount removed.");
+        } else {
+            System.out.println("✓ Discount applied: " + discountCode);
+        }
+        
+        // Show updated pricing if order has items
+        if (!order.items().isEmpty()) {
+            System.out.println();
+            Money subtotal = order.subtotal();
+            PricingService currentPricing = new PricingService(discountPolicy, new FixedRateTaxPolicy(TAX_PERCENT));
+            PricingService.PricingResult pricing = currentPricing.price(subtotal);
+            
+            System.out.println("Updated pricing:");
+            System.out.println("  Subtotal: " + subtotal);
+            if (pricing.discount().getAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                System.out.println("  Discount: -" + pricing.discount() + " EUR");
+            }
+            System.out.println("  Tax: " + pricing.tax());
+            System.out.println("  Total: " + pricing.total() + " EUR");
+        }
     }
     
     private static void pay() {
@@ -236,8 +291,19 @@ public final class Week8Demo_Interactive {
             return;
         }
         
-        Money total = order.totalWithTax(TAX_PERCENT);
-        System.out.println("Order total: " + total + " EUR");
+        // Calculate total with discount
+        Money subtotal = order.subtotal();
+        PricingService currentPricing = new PricingService(discountPolicy, new FixedRateTaxPolicy(TAX_PERCENT));
+        PricingService.PricingResult pricing = currentPricing.price(subtotal);
+        Money total = pricing.total();
+        
+        System.out.println("Order Summary:");
+        System.out.println("  Subtotal: " + subtotal);
+        if (pricing.discount().getAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            System.out.println("  Discount: -" + pricing.discount() + " EUR");
+        }
+        System.out.println("  Tax: " + pricing.tax());
+        System.out.println("  Total: " + total + " EUR");
         System.out.println();
         System.out.println("Payment methods:");
         System.out.println("  1. Card Payment");
@@ -294,8 +360,18 @@ public final class Week8Demo_Interactive {
             };
             
             if (strategy != null) {
-                PayOrderCommand payCommand = new PayOrderCommand(service, strategy, TAX_PERCENT);
-                payCommand.execute();
+                // If discount is applied, use our calculated total directly
+                // Otherwise use PayOrderCommand which uses OrderService
+                if (pricing.discount().getAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                    // Apply discount - call payment strategy directly with discounted total
+                    strategy.pay(total);
+                    System.out.println("[Service] Payment processed for total " + total + " (with discount applied)");
+                } else {
+                    // No discount - use standard PayOrderCommand
+                    PayOrderCommand payCommand = new PayOrderCommand(service, strategy, TAX_PERCENT);
+                    payCommand.execute();
+                }
+                
                 System.out.println("✓ Payment processed successfully!");
                 
                 // Clear the order after payment
@@ -304,6 +380,7 @@ public final class Week8Demo_Interactive {
                 order = new Order(OrderIds.next());
                 service = new OrderService(order);
                 remote = new PosRemote(10);
+                discountPolicy = new NoDiscount(); // Reset discount for new order
                 System.out.println("New order ID: " + order.id());
             }
         } catch (Exception e) {
@@ -337,6 +414,7 @@ public final class Week8Demo_Interactive {
             order = new Order(OrderIds.next());
             service = new OrderService(order);
             remote = new PosRemote(10);
+            discountPolicy = new NoDiscount(); // Reset discount for new order
             System.out.println("✓ New order created! Order ID: " + order.id());
         } else {
             System.out.println("Order cleared cancelled.");
