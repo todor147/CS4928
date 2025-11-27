@@ -21,7 +21,7 @@ class OrderTest {
         order.addItem(new LineItem(product, 2));
         
         assertEquals(1, order.items().size());
-        assertEquals(2, order.items().get(0).quantity());
+        assertEquals(2, order.items().getFirst().quantity());
     }
 
     @Test
@@ -72,7 +72,7 @@ class OrderTest {
         
         order.removeLastItem();
         assertEquals(1, order.items().size());
-        assertEquals("Espresso", order.items().get(0).product().name());
+        assertEquals("Espresso", order.items().getFirst().product().name());
     }
 
     @Test

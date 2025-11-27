@@ -45,7 +45,7 @@ class OrderControllerTest {
         
         var order = repo.findById(2001L).orElseThrow();
         assertEquals(1, order.items().size());
-        assertEquals("Espresso", order.items().get(0).product().name());
+        assertEquals("Espresso", order.items().getFirst().product().name());
     }
 
     @Test
@@ -56,7 +56,7 @@ class OrderControllerTest {
         
         var order = repo.findById(3001L).orElseThrow();
         assertEquals(2, order.items().size());
-        assertEquals(1, order.items().get(0).quantity());
+        assertEquals(1, order.items().getFirst().quantity());
         assertEquals(2, order.items().get(1).quantity());
     }
 
