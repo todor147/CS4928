@@ -200,14 +200,14 @@ public final class Week6Demo {
             // For multiple products, we need to create a combined recipe
             // This is a limitation - the system works best with one product + extras
             if (products.size() == 1) {
-                recipe.append(products.get(0));
+                recipe.append(products.getFirst());
                 for (String extra : extras) {
                     recipe.append("+").append(extra);
                 }
             } else {
                 // Multiple products - use the first one for now
                 // In a real system, you'd need to handle this differently
-                recipe.append(products.get(0));
+                recipe.append(products.getFirst());
                 for (String extra : extras) {
                     recipe.append("+").append(extra);
                 }
@@ -331,7 +331,7 @@ public final class Week6Demo {
         }
         
         if (!products.isEmpty()) {
-            recipe.append(products.get(0));
+            recipe.append(products.getFirst());
             for (String extra : extras) {
                 recipe.append("+").append(extra);
             }
@@ -424,14 +424,14 @@ public final class Week6Demo {
             // For multiple products, we need to create a combined recipe
             // This is a limitation - the system works best with one product + extras
             if (products.size() == 1) {
-                recipe.append(products.get(0));
+                recipe.append(products.getFirst());
                 for (String extra : extras) {
                     recipe.append("+").append(extra);
                 }
             } else {
                 // Multiple products - use the first one for now
                 // In a real system, you'd need to handle this differently
-                recipe.append(products.get(0));
+                recipe.append(products.getFirst());
                 for (String extra : extras) {
                     recipe.append("+").append(extra);
                 }
