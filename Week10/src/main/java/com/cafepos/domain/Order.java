@@ -30,7 +30,7 @@ public final class Order {
 
     public void removeLastItem() {
         if (!items.isEmpty())
-            items.remove(items.size() - 1);
+            items.removeLast();
     }
 
     public Money subtotal() {

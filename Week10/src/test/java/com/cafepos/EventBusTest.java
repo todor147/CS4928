@@ -20,7 +20,7 @@ class EventBusTest {
         bus.emit(new OrderCreated(1002L));
         
         assertEquals(2, receivedIds.size());
-        assertEquals(1001L, receivedIds.get(0));
+        assertEquals(1001L, receivedIds.getFirst());
         assertEquals(1002L, receivedIds.get(1));
     }
 
@@ -77,9 +77,9 @@ class EventBusTest {
         bus.emit(new OrderPaid(5002L));
         
         assertEquals(1, createdIds.size());
-        assertEquals(5001L, createdIds.get(0));
+        assertEquals(5001L, createdIds.getFirst());
         assertEquals(1, paidIds.size());
-        assertEquals(5002L, paidIds.get(0));
+        assertEquals(5002L, paidIds.getFirst());
     }
 }
 
