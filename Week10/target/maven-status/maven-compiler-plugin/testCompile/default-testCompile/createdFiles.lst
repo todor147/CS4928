@@ -1,0 +1,4 @@
+com\cafepos\CheckoutServiceTest.class
+com\cafepos\OrderControllerTest.class
+com\cafepos\EventBusTest.class
+com\cafepos\OrderTest.class
